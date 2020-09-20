@@ -46,8 +46,11 @@ int main()
 		else {
 			/* Codigo do filho */
 
-			char *teste[] = {"-hs",".",NULL};
-			execve("/usr/bin/du", teste, 0);
+			char *teste[] = {"/usr/bin/du", "-hs",".",NULL};
+			execve("/usr/bin/du", teste, 0);/**/
+			
+			/*char *teste[] = {"/usr/bin/traceroute", "www.google.com.br",NULL};
+			execve("/usr/bin/traceroute", teste, 0);*/
 		//}
 			//execve(command,parameters,0);
 		}
