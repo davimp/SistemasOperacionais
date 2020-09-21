@@ -2,60 +2,59 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 #include <sys/types.h> 
+#include <signal.h>
 #include <unistd.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-/*
-(*)
-O prompt do shell deve conter o nome do usuario, 
-seguido de ‘@’ e do diretorio atual entre chave
-se seguido de um espaco em branco, como no exemplo 
-abaixo que mostra o shell pronto para rodar o comando kill:
-{daniel@/tmp/mac0422/} kill -9 12345
-*/
 
 void type_prompt();
-void read_command(char* command, char* parameters[]);
+void read_command(char command[200], char parameters[200][200]);
 
-int main()
+int main(int agrc, char* argv[])
 {
 	int status;
 	char command[200];
 	char parameters[200][200];
 	while(1){
-
 		type_prompt();
-
 		read_command(command, parameters); //lê o comando digitado
-
+		printf("olha so isso, alguma coisa esta errada?: %s %s", command, parameters[0]);
 		/* roda o comando se for uma das chamadas se sistema descritas no ep */
-		//if(strcmp((const char*)command, "/usr/bin/du") == 0)
-		//{
-			//"-hs ."
-			//execv((const char*) command, (char * const*) parameters);
-		/* The  exec()  family  of functions replaces the current process 
-		image with a new process image.*/
-
-		/* senão cria um processo; daniel disse que não precisava tratar os erros */
-		if (fork() != 0) {
+		if(strcmp(command, "mkdir") == 0){
+			/*mkdir <diretorio>*/
+			mkdir(parameters[0], 775);
+		}
+		else if(strcmp(command, "kill") == 0){
+			/*kill -9 <PID>*/
+			/*int kill(pid_t pid, int sig);*/
+			kill(parameters[1], 9);
+		}
+		else if(strcmp(command, "ln") == 0){
+			/*ln -s <arquivo> <link>*/
+			/*int link(const char *oldpath, const char *newpath); esse cria um link forte
+			Queremos um link fraco, por conta do "-s"*/
+			/*int linkat(int olddirfd, const char *oldpath,
+                  int newdirfd, const char *newpath, int flags);*/
+				/*linkat parece dar pra criar um link fraco mas n seu como*/
+		}	
+		/* senão cria um processo com o fork e em seguida chama o execve */
+		else if (fork() != 0) {
 			/* Codigo do pai */
-			/* processo pai eh o shell ??*/
+			/* O processo pai só precisa esperar o filho acabar*/
 			waitpid(-1, &status,0);
-		} 
+		}
 		else {
 			/* Codigo do filho */
 
 			char *teste[] = {"/usr/bin/du", "-hs",".",NULL};
-			execve("/usr/bin/du", teste, 0);/**/
+			execve("/usr/bin/du", teste, 0);
 			
-			/*char *teste[] = {"/usr/bin/traceroute", "www.google.com.br",NULL};
-			execve("/usr/bin/traceroute", teste, 0);*/
-		//}
-			//execve(command,parameters,0);
 		}
 	}
-
+	return 0;
 }
 
 void type_prompt()
@@ -63,16 +62,13 @@ void type_prompt()
 	printf("{%s@%s", getenv("USER"), getenv("PWD"));
 }
 
-void read_command(char command[], char* parameters[])
+void read_command(char command[200], char parameters[200][200])
 {
-	size_t tam = 32;
-	//getline(&command, &tam, stdin);
 	command = readline("} ");
 	add_history (command);
-	//scanf("%s", command);
-
-	int i = 0, j = 0;
+	int i = 0, j = 0, k = 0;
 	while(command[i] != ' ' && command[i] != '\0') i++;
+
 	if(command[i] != '\0')
 	{
 		command[i] = '\0';
@@ -80,14 +76,12 @@ void read_command(char command[], char* parameters[])
 		j = 0;
 		while(command[i+j] != '\0')
 		{
-			//parameters[j] = command[i+j];
+			parameters[k][j] = command[i+j];
 			j++;
 		}
-		//parameters[j] = '\0';
+		/*printf("DEBUG\n");*/
+		parameters[k][j] = '\0';
+		k++;
 	}
-	else
-		0;//parameters[0] = '\0';
-
-
-	//printf("Comando: %s\nParametros: %s\n", command, parameters);
+	printf("Comando: %s\nParametros: %s\n", command, parameters[0]);
 }
