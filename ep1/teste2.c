@@ -13,7 +13,7 @@
 void type_prompt();
 void read_command(char command[], char* parameters[]);
 
-int main(int agrc, char* argv[])
+int main(int agrc, char* argv[]) 
 {
 	int i = 0;
 	int status;
@@ -33,14 +33,7 @@ int main(int agrc, char* argv[])
 		
 		/*printf("ponteiro depois: %x\n", command);*/
 		printf("DEBUG2: %s %s\n", command, parameters[0]);
-	/*int i = 0;
-	printf("Testando 2: ");
-	while(command[i] != '\0')
-	{
-		printf("(%d|%c)", command[i], command[i]);
-		i++;
-	}
-	puts("");*/
+	
 		/* roda o comando se for uma das chamadas se sistema descritas no ep */
 		if(strcmp(command, "mkdir") == 0){
 			/*mkdir <diretorio>*/
