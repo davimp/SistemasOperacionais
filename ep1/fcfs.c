@@ -8,6 +8,22 @@
 
 const int NUM_CPU = 4;
 
+//função para a thread
+void * Thread(void * a) {
+   long int count;
+   clock_t tempo_inicial, tempo_atual;
+   int * arg = a;
+   tempo_inicial = clock();
+   tempo_atual = clock();
+   count = -10000000;
+   while((tempo_atual - tempo_inicial)/CLOCKS_PER_SEC < (*arg)){
+      count++;
+      tempo_atual = clock();
+   }
+   free(arg);
+   return NULL;
+}
+
 void fcfs(FILE* arq_trace, FILE* arq_saida)
 {
     char nome[50]; // nome do 'processo'
@@ -23,20 +39,40 @@ void fcfs(FILE* arq_trace, FILE* arq_saida)
     
     mudancas=i=j=k=0;
 
+
     /*
-    while(le arquivo){
-        while(nao conseguiu colocar numa cpu){
-            tenta colocar numa cpu se ja tiver chegado no t0
+    clock_t tempo_inicial, tempo_atual;
+    int ok;
+    tempo_inicial = clock(); // começa a contar o tempo
+    while(fscanf(arq_trace, "%s %d %d %d", nome, t0, dt, deadline)){ // lê um processo
+        ok = 0;
+        while(!ok){ //enquanto não consegue colocar ele numa cpu
+            tempo_atual = clock();
+            if((tempo_atual-tempo_inicial)/CLOCKS_PER_SEC > t0){ //se tiver chegado no t0
+                //checa se tem cpu livre  
+                for(i = 1; i < NUM_CPU; i++)
+                {
+                    if(cpus[i].livre)//checa se a cpu 'i' ta livre, considerando que teria uma variavel pra dizer se esta livre ou não
+                    {
+                        //coloca na cpu
+                        cpus[i].livre = 0;//false
+                        ok = 1;
+                        break;
+                    }
+                }
+            }
+            if(!ok){ 
+                // se não conseguiu dorme 1 segundo
+                // se conseguiu não dorme porque o proximo processo pode ter o mesmo t0 
+                usleep(1000);
+            }
         }
     }
     */
 
-
     /*fscanf(arq_trace, "%s %d %d %d", nome, t0, dt, deadline);*/
     while(!fim_da_linha || tempo_atual <= menor_instante_livre_cpu) // cada ciclo desse while representa um ciclo do clock
     {
-
-        
         while(menor_instante_livre_cpu <= tempo_atual) // Só executa quando alguma CPU estiver livre
         {
 
@@ -69,6 +105,4 @@ void fcfs(FILE* arq_trace, FILE* arq_saida)
 
 
     return 0;
-
-    //usleep(tempo_maximo)
 }
