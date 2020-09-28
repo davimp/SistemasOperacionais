@@ -4,16 +4,16 @@ OBJS_BCCSH = bccsh.o
 OBJS_SIM = simulador.o fcfs.o
 RM = rm
 #----------------------------------------
-binarios: bccsh simulador
+binairos: bccsh simulador
 
 bccsh: $(OBJS_BCCSH)
-	$(CC)  $(OBJS_BCCSH) -o bccsh -lreadline -pthread
+	$(CC)  $(CCFLAGS) -o bccsh -lreadline -pthread
 
 bccsh.o: bccsh.c 
 	$(CC)  $(CCFLAGS) -c bccsh.c -lreadline -pthread
 
-simulador: $(OBJS_SIM) 
-	$(CC) $(OBJS_SIM) -o simulador -pthread  
+m: $(OBJS_SIM) 
+	$(CC) $(CCFLAGS) -o simulador -pthread  
 
 simulador.o: simulador.c fcfs.h
 	$(CC) $(CCFLAGS) -c simulador.c -pthread  

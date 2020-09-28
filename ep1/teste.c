@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include<time.h>
+#include <unistd.h>
 
 #define NITER 1000000000
 #define VEZES 5
@@ -25,7 +26,7 @@ void * Thread(void * a) {
 }
 
 int main() {
-   int i;
+   /*int i;
    pthread_t tid;
    int * a;
    a = malloc(sizeof(int));
@@ -40,6 +41,8 @@ int main() {
       exit(1);
    }
 
-   free(a);
+   free(a);*/
+   sleep(1);
+
    return 0;
 }

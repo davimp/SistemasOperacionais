@@ -14,8 +14,11 @@ int main(int agrc, char* argv[])
     entrada = fopen(argv[2], "r");
     saida = fopen(argv[3], "w");
 
+    fprintf(stderr, "antes arq_trace: %d \n", entrada);
+
     if(!strcmp(argv[1],"1")){
         /*1. First-Come First-Served */
+        fcfs(entrada, saida);
     }
     else if(!strcmp(argv[1],"2")){
         /*2. Shortest Remaining Time Next*/
@@ -24,4 +27,8 @@ int main(int agrc, char* argv[])
         /*3. Round-Robin*/
     }
 
+    fclose(entrada);
+    fclose(saida);
+
+    return 0;
 }

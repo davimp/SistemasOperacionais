@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string.h> 
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -16,7 +16,8 @@ void read_command(char command[], char* parameters[]);
 int main(int agrc, char* argv[]) 
 {
 	int i = 0;
-	int status;
+	int status; // tenta compilar no gcc vê se vai
+	
 	char command[200];
 	char *parameters[200];
 	int quit = 0;
@@ -128,12 +129,6 @@ void read_command(char command[], char* parameters[])
 
 	puts("LOOP");
 	i = 0; j = 0; k = 0;
-	/*command[0] = 'q';
-	command[1] = 'u';
-	command[2] = 'i';
-	command[3] = 't';
-	command[4] = '\0';
-	return;*/
 	while(command[i] != '\0')
 	{
 		while(command[i] == ' ') i++;
@@ -155,15 +150,6 @@ void read_command(char command[], char* parameters[])
 	printf("Quantos 1: %d\n", j);
 
 	strcpy(command, parameters[0]);
-
-	/*i = 0;
-	printf("Testando: ");
-	while(command[i] != '\0')
-	{
-		printf("(%d|%c)", command[i], command[i]);
-		i++;
-	}
-	puts("");*/
 
 
 	puts("SAIU");
