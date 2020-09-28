@@ -6,15 +6,13 @@
 #include"srtn.h"
 #include"rr.h"
 
-/* ./ep1 escalonador arquivo_trace arquivo_saida (parametro opcional d) */
+/* ./ep1 <escalonador> <arquivo_trace> <arquivo_saida> <parametro opcional d> */
 
 int main(int agrc, char* argv[])
 {
     FILE *entrada, *saida;
     entrada = fopen(argv[2], "r");
     saida = fopen(argv[3], "w");
-
-    fprintf(stderr, "antes arq_trace: %d \n", entrada);
 
     if(!strcmp(argv[1],"1")){
         /*1. First-Come First-Served */

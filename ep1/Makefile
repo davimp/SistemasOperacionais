@@ -1,5 +1,5 @@
 CC = gcc
-CCFLAGS = #-Wall -ansi -g -pedantic #-Wno-unused-result
+CCFLAGS = -Wall #-ansi -g #-pedantic #-Wno-unused-result
 OBJS_BCCSH = bccsh.o
 OBJS_SIM = simulador.o fcfs.o
 RM = rm
