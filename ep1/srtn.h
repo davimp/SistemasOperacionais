@@ -7,7 +7,17 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
+#include <string.h>
 
 void srtn(FILE* arq_trace, FILE* arq_saida);
+
+typedef struct processo{
+    char* nome;
+    time_t t0;
+    time_t dt;
+    time_t deadline;
+    time_t tempo_comecou;
+    time_t tempo_acabou;
+} Processo;
 
 #endif

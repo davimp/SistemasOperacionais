@@ -1,7 +1,6 @@
 #include"srtn.h"
 
-
-/* Função para a thread */
+/* Função para as threads */
 void * Thread(void * a) {
    long int count;
    time_t tempo_inicial, tempo_atual;
@@ -16,50 +15,84 @@ void * Thread(void * a) {
    return NULL;
 }
 
+
+/* EXPLICAÇÃO DA IDEIA
+- duas filas: uma de prontos e uma de nao prontos
+- a fila de prontos sera ordenada pelo dt
+- struct para guardar as informacoes dos processos
+
+    1) coloco tudo na fila de não prontos
+    2) enquanto as duas filas não estiverem vazias eu
+    faço o loop do 'clock':
+        2.1) primeiro coloco na fila de prontos quem ja esta pronto em ordem de menor dt
+        2.2) se a fila de prontos não estiver vazia, eu olho pro primeiro da fila
+        e tento colocar ele na cpu. eu só coloco ele na cpu se o dt dele for menor do dt
+        do processo que ja ta executando ou se a cpu estiver livre. caso contrario eu nao
+        faço nada.
+        3) se tiver algum processo executando na cpu diminuimos o dt dele no final do while
+        (final do 'clock') e dou um sleep(1)
+
+*/
+
 void srtn(FILE* arq_trace, FILE* arq_saida)
 {
+    Processo pronto[10000], npronto[10000];
+    int mutex;
+    int i, j, k, n, tam_prontos, tam_nprontos;
     char nome[50]; /* nome do 'processo'*/
     int t0, dt, deadline; /* dados do 'processo'*/
     int tempo1, tempo2;
-    pthread_t tid;
+    int mudancas = 0;
+    pthread_t tid[10000], atual;
     time_t tempo_inicial, tempo_atual, tempo_iniciou, tempo_acabou;
-    int ok; //se liga no terminal, passou pelo debug 3
-    tempo_inicial = time(NULL); // começa a contar o tempo 
+    int ok;
+    tempo_inicial = time(NULL); /* começa a contar o tempo  */
+    i=j=0;/* as filas estao vazias */
+    n=k=0;
+    /* Lê os processos e coloca no vetor de não prontos */
+    while(fscanf(arq_trace, "%s %d %d %d", nome, &t0, &dt, &deadline) != EOF){
+        npronto[n].nome = nome;
+        npronto[n].t0 = t0;
+        npronto[n].dt = dt;
+        npronto[n].deadline = deadline;
+        npronto[n].tempo_comecou = -1;
+        npronto[n].tempo_acabou = -1;
+        n++;
+    }
 
-    while(fscanf(arq_trace, "%s %d %d %d", nome, &t0, &dt, &deadline) != EOF){ // lê um processo
-        ok = 0;
-        while(!ok){ //enquanto não consegue colocar ele numa cpu
-            tempo_atual = time(NULL);
-            printf("tempo: %ld\n", (tempo_atual - tempo_inicial));
-            if((tempo_atual - tempo_inicial) >= t0){ //se tiver chegado no t0
-                //checa se tem cpu livre (caso com multiplas cpus)
-                //no caso de uma cpu só fica mais fácil porque só precisa chamar o escalonador
-                //de novo depois que a thread acabar
-                tempo_iniciou = time(NULL);
-                if(pthread_create(&tid, NULL, Thread, (void*)&dt)){
-                    printf("ERRO ao criar a Thread\n");
-                    exit(1);
-                }
-                ok = 1;
-            }
-
-            if(!ok){
-                // se não conseguiu dorme 1 segundo
-                // se conseguiu não dorme porque o proximo processo pode ter o mesmo t0 (caso com multiplas cpus)
-                sleep(1);
-            }
-            else{
-                /*
-                if(pthread_join(tid, NULL)){
-                    printf("ERRO ao dar join na Thread\n");
-                    exit(1);
-                }*/
-                tempo_acabou = time(NULL);
-                tempo1 = (tempo_iniciou - tempo_inicial);
-                tempo2 = (tempo_acabou - tempo_inicial);
-                fprintf(arq_saida, "%s %d %d\n", nome, tempo2, tempo2-tempo1);
+    tempo_inicial = time(NULL);
+    /* 
+    Enquanto ainda tiver processos para executar, 
+    ou seja, enquanto pelo menos uma das filas ainda
+    nao estiver vazia   
+    */
+    while(i && (j != n)){
+        tempo_atual = time(NULL);
+        tempo1 = tempo_atual - tempo_inicial;
+        /* quem esta pronto vai pra fila de prontos */
+        for(k = j; k < n; k++){
+            if(npronto[k].t0 >= tempo1){
+                /*coloca na fila de prontos*/
+                j++;
             }
         }
+
+        /* se tem alguem pronto */
+        if(i){
+            if(mutex){ /* se a cpu está livre */
+                /* coloca na cpu */
+            }
+            else{
+                /* parte mais dificil
+                - se tem alguem na cpu tem que comparar o dt dela com o 
+                dt do primeiro da fila de prontos. se for vantajoso,
+                a gente faz a troca. se não só continua. prestar atenção
+                na troca.
+                - usar semáforo?
+                */
+            }
+        }
+        sleep(1);
     }
-    printf("\n");
+    printf("%d\n", mudancas);
 }
