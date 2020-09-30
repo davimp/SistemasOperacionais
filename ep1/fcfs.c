@@ -1,107 +1,169 @@
 #include "fcfs.h"
 
+
+int livre;
+
 /* Função para a thread */
-void * Thread(void * a) {
+void * Thread_FCFS(void * a) {
+   livre = 0;
    long int count;
    time_t tempo_inicial, tempo_atual;
    int * arg = a;
+   int dt;
+   dt = (*arg);
    tempo_inicial = time(NULL);
    tempo_atual = time(NULL);
    count = -10000000;
-   while((tempo_atual - tempo_inicial) < (*arg)){
+   while((tempo_atual - tempo_inicial) < dt){
       count++;
       tempo_atual = time(NULL);
    }
+   livre = 1;
    return NULL;
 }
 
-void fcfs(FILE* arq_trace, FILE* arq_saida)
+void push_fcfs(Processo_fcfs p, Processo_fcfs v[], int * tam)
 {
-    char nome[50]; /* nome do 'processo'*/
-    int t0, dt, deadline; /* dados do 'processo'*/
-    int tempo1, tempo2;
-    int muda=0;
-    pthread_t tid;
-    time_t tempo_inicial, tempo_atual, tempo_iniciou, tempo_acabou;
-    int ok;//se liga no terminal, passou pelo debug 3
-    tempo_inicial = time(NULL); // começa a contar o tempo 
+    Processo_fcfs aux;
+    int i;
+    i = (*tam);
+    /* coloca na ultima posição */
+    v[i].id = p.id;
+    strcpy(v[i].nome, p.nome);
+    v[i].t0 = p.t0;
+    v[i].dt = p.dt;
+    v[i].deadline = p.deadline;
+    v[i].iniciou = p.iniciou;
+    v[i].acabou = p.acabou;
+    (*tam) = (*tam) + 1;
+}
 
-    while(fscanf(arq_trace, "%s %d %d %d", nome, &t0, &dt, &deadline) != EOF){ // lê um processo
-        ok = 0;
-        while(!ok){ //enquanto não consegue colocar ele numa cpu
-            tempo_atual = time(NULL);
-            printf("tempo: %ld\n", (tempo_atual - tempo_inicial));
-            if((tempo_atual - tempo_inicial) >= t0){ //se tiver chegado no t0
-                //checa se tem cpu livre (caso com multiplas cpus)
-                //no caso de uma cpu só fica mais fácil porque só precisa chamar o escalonador
-                //de novo depois que a thread acabar
-                tempo_iniciou = time(NULL);
-                if(pthread_create(&tid, NULL, Thread, (void*)&dt)){
+/* */
+int pop_fcfs(Processo_fcfs v[], int * tam)
+{
+    int i;
+    int ret;
+    ret = v[0].id;
+    (*tam) = (*tam) - 1;
+    for(i = 0; i < (*tam); i++){
+        /*[i] = [i+1]*/
+        v[i].id = v[i+1].id;
+        strcpy(v[i].nome, v[i+1].nome);
+        v[i].t0 = v[i+1].t0;
+        v[i].dt = v[i+1].dt;
+        v[i].deadline = v[i+1].deadline;
+        v[i].iniciou = v[i+1].iniciou;
+        v[i].acabou = v[i+1].acabou;
+    }
+    return ret;
+}
+
+void imprime(Processo_fcfs v[], int tam){
+   int i;
+   printf("\nIMPRIMINDO\n");
+   for(i = 0; i < tam; i++){
+      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
+      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline);
+   }
+   printf("ACABOU DE IMPRIMIR\n\n");
+}
+
+void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
+{
+    int tempo, tf;
+    int muda;
+    pthread_t tid[10000];//MAXN
+    time_t tempo_inicial, tempo_atual, tempo_iniciou, tempo_acabou;
+    int processo_atual;
+    int ok;
+    int i, j, k;
+    Processo_fcfs processos[1000], prontos[10000]; //MAXN
+    int pos_proc; // Índice do próximo processo a chegar
+    int num_proc, num_prontos;
+    muda = 0;
+    livre = 1;
+    num_proc = 0;
+
+    //fscanf(arq_trace, "%s %d %d %d", processos[0].nome, &processos[0].t0, &processos[0].dt, &processos[0].deadline);
+    puts("NEM LEU");
+    while(fscanf(arq_trace, "%s %d %d %d", processos[num_proc].nome, &processos[num_proc].t0, &processos[num_proc].dt, &processos[num_proc].deadline) != EOF) //lê os processos
+    {    
+        processos[num_proc].id = num_proc;
+        processos[num_proc].iniciou = -1;
+        processos[num_proc].acabou = -1;
+        num_proc++;
+        fprintf(stderr, "num_proc: %d %s\n", num_proc, processos[num_proc-1].nome);
+    }
+    puts("LEU TUDO");
+    
+    imprime(processos, num_proc);
+    j = 0;
+    processo_atual = -1; /* significa que não tem ninguém rodando na cpu */
+    livre = 1;
+    tempo_inicial = time(NULL);
+    while(num_prontos || (j < num_proc) || !livre){
+        tempo_atual = time(NULL);
+        tempo = tempo_atual - tempo_inicial;
+
+        if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
+
+        /* quem esta pronto vai pra fila de prontos */
+        for(k = j; k < num_proc; k++){
+            if(processos[k].t0 <= tempo){
+                /* coloca na fila de prontos */
+                push_fcfs(processos[k], prontos, &num_prontos);
+                j++;
+                if(d){ 
+                    fprintf(stderr, "Chegou processo: %s %d %d %d\n", processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
+                }
+            }
+            else break;
+        }
+        /*imprime(prontos, num_prontos);*/
+
+        /* se tiver alguém pronto e a cpu estiver livre */
+        if(livre){
+            /*checa se algum processo acabou de terminar*/
+            if(processo_atual >= 0){
+                /*tf = tempo;*/
+                fprintf(arq_saida, "%s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
+                if(d){ 
+                    fprintf(stderr, "Acabou a execução: %s %d %d %d\n", processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
+                    fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
+                }
+                processo_atual = -1;
+                muda++;
+            }
+
+            if(num_prontos){
+                processo_atual = pop_fcfs(prontos, &num_prontos);
+                if(pthread_create(&tid[processo_atual], NULL, Thread_FCFS, (void*)&processos[processo_atual].dt)){
                     printf("ERRO ao criar a Thread\n");
                     exit(1);
                 }
-                ok = 1;
-            }
-
-            if(!ok){
-                // se não conseguiu dorme 1 segundo
-                // se conseguiu não dorme porque o proximo processo pode ter o mesmo t0 (caso com multiplas cpus)
-                sleep(1);
-            }
-            else{ 
-                if(pthread_join(tid, NULL)){
-                    printf("ERRO ao dar join na Thread\n");
-                    exit(1);
+                if(d){ 
+                    fprintf(stderr, "Começou a executar na CPU: %s %d %d %d\n", processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
                 }
-                tempo_acabou = time(NULL);
-                tempo1 = (tempo_iniciou - tempo_inicial);
-                tempo2 = (tempo_acabou - tempo_inicial);
-                fprintf(arq_saida, "%s %d %d\n", nome, tempo2, tempo2-tempo1);
             }
         }
-        muda++;
+        if(d) fprintf(stderr, "Mudanças de contexto até agora: %d\n", muda);
+        sleep(1);
     }
-    printf("%d\n", muda-1);
+    /*-------------------------------*/
+    for(i = 0; i < num_proc; i++){
+        if(pthread_join(tid[i], NULL)){
+                printf("ERRO ao dar join na Thread\n");
+                exit(1);
+        }
+    }
+    /* imprime o último */
+    tempo_atual = time(NULL);
+    tempo = tempo_atual - tempo_inicial;
+    if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
+    if(d){ 
+        fprintf(stderr, "Acabou a execução: %s %d %d %d\n", processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
+        fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
+    }
+    fprintf(arq_saida, "%s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
+    fprintf(arq_saida, "%d\n", muda);
 }
-    /*fscanf(arq_trace, "%s %d %d %d", nome, t0, dt, deadline);*/
-    /*
-    const int NUM_CPU = 1;(antes da main)
-    int mudancas; // quantidade total de mudanças de contexto
-    int instante_livre_cpu[NUM_CPU]; // instante no qual cada CPU vai ficar livre
-    int menor_instante_livre_cpu = 0; // menor instante no qual uma CPU vai ficar livre
-    int indice_menor_instante = 0; // Índice da CPU que vai ficar dísponivel primeiro
-    int i, j, k;
-    */
-    /*while(!fim_da_linha || tempo_atual <= menor_instante_livre_cpu) // cada ciclo desse while representa um ciclo do clock
-    {
-        while(menor_instante_livre_cpu <= tempo_atual) // Só executa quando alguma CPU estiver livre
-        {
-
-            // Crio um processo e mudo o valor do instante_livre da próxima CPU a ficar livre
-            
-            //...
-
-            // Recalculo o menor_instante_livre_cpu
-            menor_instante_livre_cpu = instante_livre_cpu[0];
-            indice_menor_instante = 0;
-
-            for(i = 1; i < NUM_CPU; i++)
-            {
-                if(instante_livre_cpu[i] < menor_instante_livre_cpu)
-                {
-                    menor_instante_livre_cpu = instante_livre_cpu[i];
-                    indice_menor_instante = i;
-                }
-            }
-
-
-            if(fscanf(arq_trace, "%s %d %d %d", nome, t0, dt, deadline) == EOF) //lê outro 'processo'
-                fim_da_linha = 1;
-        }
-
-    
-        usleep(1000);
-        tempo_atual++;
-    }
-*/
-

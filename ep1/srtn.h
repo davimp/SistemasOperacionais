@@ -9,15 +9,16 @@
 #include <time.h>
 #include <string.h>
 
-void srtn(FILE* arq_trace, FILE* arq_saida);
+void srtn(FILE* arq_trace, FILE* arq_saida, int d);
 
-typedef struct processo{
-    char* nome;
+typedef struct processo_srtn{
+    int id;
+    char nome[40];
     time_t t0;
     time_t dt;
     time_t deadline;
     time_t tempo_comecou;
     time_t tempo_acabou;
-} Processo;
+} Processo_srtn;
 
 #endif
