@@ -58,15 +58,7 @@ int pop_fcfs(Processo_fcfs v[], int * tam)
     return ret;
 }
 
-void imprime(Processo_fcfs v[], int tam){
-   int i;
-   printf("\nIMPRIMINDO\n");
-   for(i = 0; i < tam; i++){
-      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
-      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline);
-   }
-   printf("ACABOU DE IMPRIMIR\n\n");
-}
+
 
 void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
 {
@@ -96,10 +88,10 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
     }
     puts("LEU TUDO");
     
-    imprime(processos, num_proc);
+    /*imprime(processos, num_proc);*/
     j = 0;
     processo_atual = -1; /* significa que não tem ninguém rodando na cpu */
-    livre = 1;
+    livre = 1; /* cpu esta livre */
     tempo_inicial = time(NULL);
     while(num_prontos || (j < num_proc) || !livre){
         tempo_atual = time(NULL);
