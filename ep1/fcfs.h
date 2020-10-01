@@ -17,8 +17,6 @@ typedef struct processo_fcfs{
     time_t t0;
     time_t dt;
     time_t deadline;
-    time_t iniciou;
-    time_t acabou;
 } Processo_fcfs;
 
 

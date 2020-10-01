@@ -1,6 +1,5 @@
 #include "fcfs.h"
 
-
 int livre;
 
 /* Função para a thread */
@@ -33,12 +32,10 @@ void push_fcfs(Processo_fcfs p, Processo_fcfs v[], int * tam)
     v[i].t0 = p.t0;
     v[i].dt = p.dt;
     v[i].deadline = p.deadline;
-    v[i].iniciou = p.iniciou;
-    v[i].acabou = p.acabou;
     (*tam) = (*tam) + 1;
 }
 
-/* */
+
 int pop_fcfs(Processo_fcfs v[], int * tam)
 {
     int i;
@@ -52,20 +49,16 @@ int pop_fcfs(Processo_fcfs v[], int * tam)
         v[i].t0 = v[i+1].t0;
         v[i].dt = v[i+1].dt;
         v[i].deadline = v[i+1].deadline;
-        v[i].iniciou = v[i+1].iniciou;
-        v[i].acabou = v[i+1].acabou;
     }
     return ret;
 }
-
-
 
 void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
 {
     int tempo, tf;
     int muda;
     pthread_t tid[10000];//MAXN
-    time_t tempo_inicial, tempo_atual, tempo_iniciou, tempo_acabou;
+    time_t tempo_inicial, tempo_atual;
     int processo_atual;
     int ok;
     int i, j, k;
@@ -76,21 +69,16 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
     livre = 1;
     num_proc = 0;
 
-    //fscanf(arq_trace, "%s %d %d %d", processos[0].nome, &processos[0].t0, &processos[0].dt, &processos[0].deadline);
-    puts("NEM LEU");
     while(fscanf(arq_trace, "%s %d %d %d", processos[num_proc].nome, &processos[num_proc].t0, &processos[num_proc].dt, &processos[num_proc].deadline) != EOF) //lê os processos
     {    
         processos[num_proc].id = num_proc;
-        processos[num_proc].iniciou = -1;
-        processos[num_proc].acabou = -1;
         num_proc++;
         fprintf(stderr, "num_proc: %d %s\n", num_proc, processos[num_proc-1].nome);
     }
-    puts("LEU TUDO");
     
-    /*imprime(processos, num_proc);*/
-    j = 0;
-    processo_atual = -1; /* significa que não tem ninguém rodando na cpu */
+
+    j = 0; /*ninguem esta pronto ainda */
+    processo_atual = -1; /* ninguem rodando na cpu */
     livre = 1; /* cpu esta livre */
     tempo_inicial = time(NULL);
     while(num_prontos || (j < num_proc) || !livre){
@@ -124,7 +112,6 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
                     fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
                 }
                 processo_atual = -1;
-                muda++;
             }
 
             if(num_prontos){
@@ -153,8 +140,10 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
     tempo = tempo_atual - tempo_inicial;
     if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
     if(d){ 
-        fprintf(stderr, "Acabou a execução: %s %d %d %d\n", processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-        fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
+        fprintf(stderr, "Acabou a execução: %s %d %d %d\n", 
+        processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
+        fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
+        processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
     }
     fprintf(arq_saida, "%s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
     fprintf(arq_saida, "%d\n", muda);

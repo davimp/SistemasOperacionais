@@ -129,6 +129,21 @@ void pop_front(Processo v[], int * tam)
 }
 
 
+
+void pause_thread(int id){
+    pthread_mutex_lock(&lock[id]);
+    play[id] = 0;
+    pthread_mutex_unlock(&lock[id]);
+}
+
+void play_thread(int id){
+    pthread_mutex_lock(&lock[id]);
+    play[id] = 1;
+    pthread_cond_signal(&cond[id]);
+    pthread_mutex_unlock(&lock[id]);
+}
+
+
 int main() {
    int x,y;
    pthread_mutex_t mut[10000];
@@ -164,14 +179,9 @@ int main() {
     }
 
     sleep(3);
-    pthread_mutex_lock(&lock[0]);
-    play[0] = 0;
-    pthread_mutex_unlock(&lock[0]);
+    pause_thread(0);
     sleep(3);
-    pthread_mutex_lock(&lock[0]);
-    play[0] = 1;
-    pthread_cond_signal(&cond[0]);
-    pthread_mutex_unlock(&lock[0]);
+    play_thread(0);
 
     if(pthread_join(tid[0], NULL)){
         printf("ERRO ao dar join na Thread\n");

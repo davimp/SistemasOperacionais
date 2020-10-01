@@ -2,6 +2,7 @@
 
 #define QUANTUM 1
 
+Processo_rr pronto[10000], processos[10000]; //colocar MAXN talvez
 pthread_t tid[10000];
 pthread_mutex_t lock[10000];
 pthread_cond_t cond[10000];
@@ -11,15 +12,21 @@ int play[10000];
 void * Thread_RR(void * a)
 {
    long int count;
-   time_t tempo_inicial, tempo_atual;
    int * arg = a;
-   int dt = (*arg);
-   tempo_inicial = time(NULL);
-   tempo_atual = time(NULL);
+   int id = (*arg);
+   int dt = processos[id].dt;
+   double tempo;
    count = -10000000;
-   while((tempo_atual - tempo_inicial) < dt){
-      count++;
-      tempo_atual = time(NULL);
+   tempo = 0;
+   while(tempo < dt){
+      count = (count + rand())* rand();
+      pthread_mutex_lock(&lock[id]);
+      while(!play[id]){
+        pthread_cond_wait(&cond[id], &lock[id]);
+      }
+      pthread_mutex_unlock(&lock[id]);
+      usleep(10000);
+      tempo += 0.01;
    }
    return NULL;
 }
@@ -56,10 +63,7 @@ void tira(int index, Processo_rr v[], int * tam){
 
 void rr(FILE* arq_trace, FILE* arq_saida, int d)
 {
-    Processo_rr pronto[10000], processos[10000]; //colocar MAXN talvez
     Processo_rr aux;
-    pthread_t tid[10000];
-    int mutex;
     int i, j, k, tam_prontos, tam_processos, processo_atual;
     char nome[50]; /* nome do 'processo'*/
     int t0, dt, deadline; /* dados do 'processo'*/

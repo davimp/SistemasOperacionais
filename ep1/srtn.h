@@ -17,8 +17,6 @@ typedef struct processo_srtn{
     time_t t0;
     time_t dt;
     time_t deadline;
-    time_t tempo_comecou;
-    time_t tempo_acabou;
 } Processo_srtn;
 
 #endif
