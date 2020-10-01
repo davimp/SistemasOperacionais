@@ -55,8 +55,8 @@ void * Thread(void * a)
         pthread_cond_wait(&cond[0], &lock[0]);
       }
       pthread_mutex_unlock(&lock[0]);
-      usleep(10000);
-      tempo += 0.01;
+      usleep(1000);
+      tempo += 0.001;
       /*printf("%lf\n", tempo);*/
       /*printf("debug: %d\n", tempo);*/
    }

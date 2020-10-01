@@ -119,7 +119,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
     int i, j, k, num_prontos, num_proc, processo_atual;
     int tempo;
     int muda = 0;
-    int ok;
+    int flag;
     tempo_inicial = time(NULL); /* começa a contar o tempo  */
     i=j=k=0;
     num_proc=num_prontos = 0;
@@ -131,13 +131,10 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
         play[num_proc] = -1;
         num_proc++;
     }
-
-    imprime(processos, num_proc);
-
     /* 
     Enquanto ainda tiver processos para executar, 
     ou seja, enquanto pelo menos uma das filas ainda
-    nao estiver vazia   
+    nao estiver vazia 
     */
     processo_atual = -1;
     tempo_inicial = time(NULL);
@@ -167,9 +164,11 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
         /* se tem alguem pronto */
         if(num_prontos){
             if(processo_atual < 0 || processos[processo_atual].dt <= 0){ /* se a cpu está livre */
+                flag = 0;
                 /* coloca na cpu */
                 /*se tinha um processo na cpu que acabou agora*/
                 if(processo_atual >= 0){
+                    flag = 1;
                     pop_front(prontos, &num_prontos);
                     if(d){ 
                         fprintf(stderr, "Acabou a execução: %s %d %d %d\n", 
@@ -181,7 +180,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                     processo_atual = -1; /*não tem ninguem na cpu*/
                 }
 
-                /*se ainda tiver alguem pronto, coloca ele na cpu*/
+                /*se algum estiver pronto, coloca ele na cpu */
                 if(num_prontos){
                     processo_atual = prontos[0].id;
                     play_thread(processo_atual);
@@ -189,10 +188,11 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                         fprintf(stderr, "Começou a executar na CPU: %s %d %d %d\n", 
                         processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
                     }
+                    if(flag) muda++;
                 }
             }
-            else{ /*se a cpu está ocupada */
-               if(processos[processo_atual].dt > prontos[0].dt){/* poderia ser processos[processo_atual].id != processos[0].id*/
+            else{ /* se a cpu está ocupada */
+               if(processos[processo_atual].dt > prontos[0].dt){/* poderia ser processo_atual != processos[0].id */
                     /*preempção*/
 
                     /*primeiro pausa quem ta executando*/
@@ -202,7 +202,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                         processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
                     }
 
-                    /*depois executa quem chegou agora*/
+                    /*depois executa quem chegou*/
                     processo_atual = prontos[0].id;
                     play_thread(processo_atual);
                     if(d){ 
