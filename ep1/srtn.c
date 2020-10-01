@@ -12,20 +12,33 @@ void * Thread_SRTN(void * a)
    long int count;
    int * arg = a;
    int id = (*arg);
-   int dt = processos[id].dt;
+   free(arg);
+   double dt = (double)processos[id].dt;
    double tempo;
+   clock_t t1, t2, t3, t4;
+   /*printf("debug:%d %d\n", id, dt);*/
    count = -10000000;
    tempo = 0;
-   while(tempo < dt){
-      count = (count + rand())* rand();
+   t1 = clock();
+   printf("%s comecou em %d\n", processos[id].nome, sched_getcpu());
+   while((t2 - t1) < dt*CLOCKS_PER_SEC){
+       t2 = clock();
+       t3=t4=0;
+      count++;
+      /*verifica se pode continuar rodando*/
       pthread_mutex_lock(&lock[id]);
       while(!play[id]){
+        printf("%s pausou em %d\n", processos[id].nome, sched_getcpu());
+        t3 = clock();
         pthread_cond_wait(&cond[id], &lock[id]);
+        t4 = clock();
+        printf("%s voltou em  %d\n", processos[id].nome, sched_getcpu());
       }
+      /* fim da verificação */
       pthread_mutex_unlock(&lock[id]);
-      usleep(10000);
-      tempo += 0.01;
+      dt += (double)((t4-t3)/CLOCKS_PER_SEC);
    }
+   printf("%s liberou em %d\n", processos[id].nome, sched_getcpu());
    return NULL;
 }
 
@@ -65,7 +78,7 @@ void push(Processo_srtn p, Processo_srtn v[], int * tam)
     (*tam) = (*tam) + 1;
 }
 
-void pop_front(Processo_srtn v[], int * tam)
+void pop_srtn(Processo_srtn v[], int * tam)
 {
     int i;
     (*tam) = (*tam) - 1;
@@ -97,9 +110,13 @@ void pause_thread(int id){
 
 void play_thread(int id){
     /* se não foi criada ainda */
+    /*printf("PLAY_THREAD %d\n", id);*/
+    int * argumento;
     if(play[id] == -1){
         play[id]  = 1;
-        if(pthread_create(&tid[id], NULL, Thread_SRTN, (void*)&id)){
+        argumento = malloc(sizeof(int));
+        (*argumento) = id;
+        if(pthread_create(&tid[id], NULL, Thread_SRTN, argumento)){
             printf("ERRO ao criar a Thread\n");
             exit(1);
         }
@@ -119,7 +136,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
     int i, j, k, num_prontos, num_proc, processo_atual;
     int tempo;
     int muda = 0;
-    int flag;
+    int tinha_alguem_antes;
     tempo_inicial = time(NULL); /* começa a contar o tempo  */
     i=j=k=0;
     num_proc=num_prontos = 0;
@@ -159,17 +176,17 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
             else break;
         }
 
-        imprime(prontos, num_prontos);
+        /*imprime(prontos, num_prontos);*/
 
         /* se tem alguem pronto */
         if(num_prontos){
             if(processo_atual < 0 || processos[processo_atual].dt <= 0){ /* se a cpu está livre */
-                flag = 0;
+                tinha_alguem_antes = 0;
                 /* coloca na cpu */
                 /*se tinha um processo na cpu que acabou agora*/
                 if(processo_atual >= 0){
-                    flag = 1;
-                    pop_front(prontos, &num_prontos);
+                    tinha_alguem_antes = 1;
+                    pop_srtn(prontos, &num_prontos);
                     if(d){ 
                         fprintf(stderr, "Acabou a execução: %s %d %d %d\n", 
                         processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
@@ -183,12 +200,13 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                 /*se algum estiver pronto, coloca ele na cpu */
                 if(num_prontos){
                     processo_atual = prontos[0].id;
+                    /*printf("PROCESSO ATUAL: %d", prontos[0].id);*/
                     play_thread(processo_atual);
                     if(d){ 
                         fprintf(stderr, "Começou a executar na CPU: %s %d %d %d\n", 
                         processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
                     }
-                    if(flag) muda++;
+                    if(tinha_alguem_antes) muda++;
                 }
             }
             else{ /* se a cpu está ocupada */

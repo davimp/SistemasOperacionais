@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <sched.h>
 
 #define NITER 1000000000
 #define VEZES 5
@@ -45,21 +46,32 @@ void * Thread(void * a)
    int id = (*arg);
    int dt = processos[id].dt;
    double tempo;
-   printf("debug: %d\n", dt);
+   clock_t t1, t2, t3, t4;
+   /*printf("debug: %d\n", dt);*/
    count = -10000000;
    tempo = 0;
-   while(tempo < dt){
+   t1 = clock();
+   printf("inicio: %d\n", sched_getcpu());
+   while((t2 - t1) < dt*CLOCKS_PER_SEC){
+       t2 = clock();
+       t3=t4=0;
       count = (count + rand())* rand();
-      pthread_mutex_lock(&lock[0]);
-      while(!play[0]){
-        pthread_cond_wait(&cond[0], &lock[0]);
+      count = (count + rand())* rand();
+      count = count*count;
+      pthread_mutex_lock(&lock[id]);
+      while(!play[id]){
+          printf("pausou: %d\n", sched_getcpu());
+        t3 = clock();
+        pthread_cond_wait(&cond[id], &lock[id]);
+        t4 = clock();
+        printf("voltou: %d\n", sched_getcpu());
       }
-      pthread_mutex_unlock(&lock[0]);
-      usleep(1000);
-      tempo += 0.001;
-      /*printf("%lf\n", tempo);*/
-      /*printf("debug: %d\n", tempo);*/
+      pthread_mutex_unlock(&lock[id]);
+      /*usleep(10000);*/
+      /*tempo += 0.01;*/
+      dt += (int)((t4-t3)/CLOCKS_PER_SEC);
    }
+   printf("final: %d\n", sched_getcpu());
    return NULL;
 }
 
@@ -143,7 +155,6 @@ void play_thread(int id){
     pthread_mutex_unlock(&lock[id]);
 }
 
-
 int main() {
    int x,y;
    pthread_mutex_t mut[10000];
@@ -165,36 +176,41 @@ int main() {
         processos[tam_processos].id = tam_processos;
         processos[tam_processos].tempo_comecou = -1;
         processos[tam_processos].tempo_acabou = -1;
+        play[tam_processos] = -1;
         tam_processos++;
     }
+
+    printf("debug 1: %d\n", sched_getcpu());
    imprime(processos, tam_processos);
 
 
    imprime(pronto, tam_prontos);
 
     play[0] = 1;
-    if(pthread_create(&tid[0], NULL, Thread, (void*)&processos[0].id)){
+    int ide = 0;
+    if(pthread_create(&tid[0], NULL, Thread, (void*)&ide)){
         printf("ERRO ao criar a Thread\n");
         exit(1);
     }
+    printf("debug 2: %d\n", sched_getcpu());
 
-    sleep(3);
+    sleep(5);
     pause_thread(0);
-    sleep(3);
+    sleep(5);
     play_thread(0);
 
     if(pthread_join(tid[0], NULL)){
         printf("ERRO ao dar join na Thread\n");
         exit(1);
     }
-
-   for(i = 0; i < tam_processos; i++){
+    printf("debug 4: %d\n", sched_getcpu());
+   /*for(i = 0; i < tam_processos; i++){
       push(processos[i], pronto, &tam_prontos);
    }
    while(tam_prontos){
       pop_front(pronto, &tam_prontos);
       imprime(pronto, tam_prontos);
-   }
+   }*/
 
    return 0;
 }
