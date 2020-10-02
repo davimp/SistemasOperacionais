@@ -4,7 +4,7 @@ OBJS_BCCSH = bccsh.o
 OBJS_SIM = simulador.o fcfs.o srtn.o rr.o
 RM = rm
 #----------------------------------------
-binarios: bccsh simulador
+binarios: bccsh ep1
 
 bccsh: $(OBJS_BCCSH)
 	$(CC)  $(OBJS_BCCSH) -o bccsh -lreadline -pthread
@@ -12,7 +12,7 @@ bccsh: $(OBJS_BCCSH)
 bccsh.o: bccsh.c 
 	$(CC)  $(CCFLAGS) -c bccsh.c -lreadline -pthread
 
-simulador: $(OBJS_SIM) 
+ep1: $(OBJS_SIM) 
 	$(CC) $(OBJS_SIM) -o simulador -pthread  
 
 simulador.o: simulador.c fcfs.h srtn.h rr.h

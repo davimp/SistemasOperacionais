@@ -122,7 +122,6 @@ void play_thread(int id){
     /*cpu não está mais livre*/
     livre = 0;
     /* se não foi criada ainda */
-    printf("id: %d\n", id);
     int * argumento;
     if(play[id] == -1){
         play[id]  = 1;
@@ -218,7 +217,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
         /* se tem alguem pronto */
         if(num_prontos){
             if(livre && num_prontos){ /* se a cpu está livre e tem pelo menos alguém pronto */
-                printf("entrei: %d E %d\n", num_prontos, livre);
+                /*printf("entrei: %d E %d\n", num_prontos, livre);*/
                 processo_atual = prontos[0].id;
                 play_thread(processo_atual);
                 if(tinha_alguem_antes) muda++;
@@ -230,11 +229,11 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                     /*preempção*/
                     /*primeiro pausa quem ta executando*/
                     pause_thread(processo_atual);
-
+                    printf("Pausei %d", processo_atual);
                     /*depois executa quem chegou*/
                     processo_atual = prontos[0].id;
                     play_thread(processo_atual);
-
+                    printf(" e comecei %d\n", processo_atual);
                     muda++;
                }
             }

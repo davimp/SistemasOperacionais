@@ -109,21 +109,6 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         acabou_de_liberar = 0;
         if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
 
-        /* quem esta pronto vai pra fila de prontos */
-        for(k = j; k < num_proc; k++){
-            if(processos[k].t0 <= tempo){
-                /* coloca na fila de prontos */
-                push_fcfs(processos[k], prontos, &num_prontos);
-                j++;
-                if(d){ 
-                    fprintf(stderr, "Chegou processo: %s %d %d %d\n", 
-                    processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
-                }
-            }
-            else break;
-        }
-
-        /* checa se algum processo acabou de terminar*/
         if(liberou){
             acabou_de_liberar = 1;
             if(d){ 
@@ -139,6 +124,22 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
             livre = 1;
             pthread_mutex_unlock(&mutex);
         }
+        
+        /* quem esta pronto vai pra fila de prontos */
+        for(k = j; k < num_proc; k++){
+            if(processos[k].t0 <= tempo){
+                /* coloca na fila de prontos */
+                push_fcfs(processos[k], prontos, &num_prontos);
+                j++;
+                if(d){ 
+                    fprintf(stderr, "Chegou processo: %s %d %d %d\n", 
+                    processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
+                }
+            }
+            else break;
+        }
+
+        /* checa se algum processo acabou de terminar*/
 
         /* se tiver alguém pronto e a cpu estiver livre */
         if(livre && num_prontos){

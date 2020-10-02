@@ -7,9 +7,8 @@ pthread_t tid[10000];
 pthread_mutex_t lock[10000];
 pthread_cond_t cond[10000];
 int play[10000];
-
+int D;
 int liberou;
-char s_liberou[40];
 int c_liberou;
 int id_liberou;
 
@@ -23,37 +22,37 @@ void * Thread_RR(void * a)
    int dt = processos[id].dt;
    double tempo;
    time_t t1, t2, t3, t4;
-   printf("debug:%d %d\n", id, dt);
+
+   //printf("debug:%d %d\n", id, dt);
+   
    count = -10000000;
    tempo = 0;
    t1 = time(NULL);
-   printf("%s comecou na CPU%d\n", processos[id].nome, sched_getcpu());
+   if(D) fprintf(stderr, "%s comecou na CPU%d\n", processos[id].nome, sched_getcpu());
    while((t2 - t1) < dt){
        t2 = time(NULL);
        t3=t4=0;
       count++;
       pthread_mutex_lock(&lock[id]);
       while(!play[id]){
-        printf("%s pausou na CPU%d\n", processos[id].nome, sched_getcpu());
+        if(D) fprintf(stderr, "%s pausou na CPU%d\n", processos[id].nome, sched_getcpu());
         t3 = time(NULL);
         pthread_cond_wait(&cond[id], &lock[id]);
         t4 = time(NULL);
-        printf("%s voltou na  CPU%d\n", processos[id].nome, sched_getcpu());
+        if(D) fprintf(stderr, "%s voltou na  CPU%d\n", processos[id].nome, sched_getcpu());
       }
       pthread_mutex_unlock(&lock[id]);
       dt += (int)(t4-t3);
    }
-   printf("%s liberou na CPU%d\n", processos[id].nome, sched_getcpu());
 
     liberou = 1;
-    strcpy(s_liberou, processos[id].nome);
     c_liberou = sched_getcpu();
     id_liberou = id;
-
 
    return NULL;
 }
 
+//Copia os atributos de *p para *q
 void atribui_processo(Processo_rr *p, Processo_rr *q)
 {
     q->id = p->id;
@@ -63,22 +62,57 @@ void atribui_processo(Processo_rr *p, Processo_rr *q)
     q->deadline = p->deadline;
 }
 
-void bota(Processo_rr p, Processo_rr v[], int * tam)
+//Criar a fila
+Processo_rr* cria_fila()
 {
-    Processo_rr aux;
-    int i;
-    i = (*tam);
-    /* coloca na ultima posição */
-    atribui_processo(&p, v+i);
+    Processo_rr *cabeca = malloc(sizeof(Processo_rr));
+    cabeca->prox = NULL;
+
+    return cabeca;
+}
+
+//Colocar elementos na fila
+void bota(Processo_rr *p, Processo_rr **fim, int * tam)
+{
+    Processo_rr *novo = malloc(sizeof(Processo_rr));
+
+    atribui_processo(p, novo);
+    novo->prox = NULL;
+
+    (*fim)->prox = novo;
+    *fim = novo;
 
     (*tam) = (*tam) + 1;
 }
 
-void tira(int index, Processo_rr v[], int * tam){
-    int i;
-    (*tam) = (*tam) - 1;
-    for(i = index; i < (*tam); i++){
-        atribui_processo(v+i+1, v+i);
+//Retirar elementos da fila
+void tira(Processo_rr *cabeca, Processo_rr **fim, int * tam)
+{
+    Processo_rr *prox;
+
+    if(*fim != cabeca)
+    {
+        if(*fim == cabeca->prox)
+            *fim = cabeca;
+
+        prox = cabeca->prox;
+        cabeca->prox = cabeca->prox->prox;
+        
+        free(prox);
+        (*tam) = (*tam) - 1;
+    }
+
+}
+
+//Dar free na fila
+void libera_fila(Processo_rr *cabeca)
+{
+    Processo_rr *prox;
+    while(cabeca != NULL)
+    {   
+        prox = cabeca->prox;
+        free(cabeca);
+        cabeca = prox;
     }
 }
 
@@ -112,6 +146,7 @@ void executa_thread(int id){
 void rr(FILE* arq_trace, FILE* arq_saida, int d)
 {
     Processo_rr aux;
+    Processo_rr *cabeca_fila, *fim_fila;
     int i, j, k, tam_prontos, num_proc, processo_atual;
     char nome[50]; /* nome do 'processo'*/
     int t0, dt, deadline; /* dados do 'processo'*/
@@ -123,6 +158,7 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
     tempo_inicial = time(NULL); /* começa a contar o tempo  */
     i=j=k=0;
     num_proc=tam_prontos = 0;
+    D = d;
 
     /* lê os processos e coloca no vetor de processos */
     while(fscanf(arq_trace, "%s %d %d %d", nome, &t0, &dt, &deadline) != EOF){
@@ -137,6 +173,11 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         num_proc++;
     }
 
+    //Inizializa fila
+    cabeca_fila = cria_fila();
+    fim_fila = cabeca_fila;
+
+
     /* 
     Enquanto ainda tiver processos para executar, 
     ou seja, enquanto pelo menos uma das filas ainda
@@ -145,7 +186,9 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
     processo_atual = -1;
     tempo_inicial = time(NULL);
     tempo_processamento = -1;
+
     aux.dt = -2;
+
     liberou = 0;
     int pode_mudar; // 1 se um processo preemptou ou finalizou, 0 caso contrario
     /* se tem algum processo a ser analisado ainda */
@@ -159,8 +202,9 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
 
         if(liberou)
         {
-            //printf("%s liberou na CPU%d ---> id: %d\n", s_liberou, c_liberou, id_liberou);
-            fprintf(arq_saida, "%s %d %d\n", s_liberou, tempo, tempo - processos[id_liberou].t0);
+            if(d)
+                fprintf(stderr, "%s liberou na CPU%d\n", processos[id_liberou].nome, c_liberou, id_liberou);
+            fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             liberou = 0;
         }
 
@@ -168,7 +212,8 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         for(k = j; k < num_proc; k++){
             if(processos[k].t0 <= tempo){
                 /* coloca na fila de prontos */
-                bota(processos[k], pronto, &tam_prontos);
+                //bota(processos[k], pronto, &tam_prontos);
+                bota(processos + k, &fim_fila, &tam_prontos);
                 if(d){
                     fprintf(stderr, "Chegou processo: %s %d %d %d\n", 
                     processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
@@ -198,17 +243,16 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         else if(tempo_processamento >= QUANTUM)
         {
             aux.dt -= QUANTUM;
-            bota(aux, pronto, &tam_prontos);
+            
+            bota(&aux, &fim_fila, &tam_prontos);
             tempo_processamento = -1;
-            /*preemptar*/
-            /*preempção*/
+            
             /*pausa quem ta executando*/
             pausa_thread(aux.id);
             if(d){
                 fprintf(stderr, "Pausou a execução na CPU: %s %d %d %d\n", processos[aux.id].nome, processos[aux.id].t0, processos[aux.id].dt, processos[aux.id].deadline);
-                fprintf(stderr, "(2) Pausou a execução na CPU: %d\n", aux.dt);
             }
-            //aux.dt = -2; /*isso ta certo? sim*/
+            
             pode_mudar = 1;
         }
 
@@ -217,10 +261,13 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         {
             if(pronto[0].id != aux.id && pode_mudar)
                 muda++;
-            atribui_processo(pronto, &aux);
-            tira(0, pronto, &tam_prontos);
+                
+            atribui_processo(cabeca_fila->prox, &aux);
+            tira(cabeca_fila, &fim_fila, &tam_prontos);
+
             tempo_processamento = 0;
             tempo_comeca_processo = time(NULL);
+
             /* tirar a preempção ou criar thread */
             executa_thread(aux.id);
             if(d){ 
@@ -243,4 +290,7 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
 
     if(d)
         fprintf(stderr, "Mudanças de contexto: %d\n", muda);
+
+    libera_fila(cabeca_fila);
+
 }

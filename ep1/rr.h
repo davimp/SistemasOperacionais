@@ -17,6 +17,8 @@ typedef struct processo_rr{
     time_t t0;
     time_t dt;
     time_t deadline;
+
+    struct processo_rr *prox;
 } Processo_rr;
 
 #endif
