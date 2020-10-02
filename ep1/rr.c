@@ -156,6 +156,8 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
     time_t tempo_inicial, tempo_atual;
     time_t tempo_processamento, tempo_comeca_processo;
     int ok;
+    int saida_tf[MAXN], saida_tr[MAXN];
+
     tempo_inicial = time(NULL); /* começa a contar o tempo  */
     i=j=k=0;
     num_proc=tam_prontos = 0;
@@ -205,7 +207,10 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         {
             if(d)
                 fprintf(stderr, "%s liberou na CPU%d\n", processos[id_liberou].nome, c_liberou, id_liberou);
-            fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            //fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            saida_tf[id_liberou] = tempo;
+            saida_tr[id_liberou] = tempo - processos[id_liberou].t0;
+
             liberou = 0;
         }
 
@@ -286,6 +291,9 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
                 exit(1);
         }
     }
+
+    for(i = 0; i < num_proc; i++)
+        fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
 
     fprintf(arq_saida, "%d\n", muda);
 

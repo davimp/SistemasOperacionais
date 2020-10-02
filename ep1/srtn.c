@@ -156,6 +156,8 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
     int tempo;
     int muda = 0;
     int tinha_alguem_antes;
+    int saida_tf[MAXN], saida_tr[MAXN];
+
     i=j=k=0;
     num_proc=num_prontos = 0;
     liberou = 0;
@@ -191,7 +193,10 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                 fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
                 processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             }
-            fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            //fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            saida_tf[id_liberou] = tempo;
+            saida_tr[id_liberou] = tempo - processos[id_liberou].t0;
+
             processo_atual = -1; /*não tem ninguem na cpu*/
             liberou = 0;
             livre = 1;
@@ -254,5 +259,9 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                 exit(1);
         }
     }
+
+    for(i = 0; i < num_proc; i++)
+        fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
+
     fprintf(arq_saida, "%d\n", muda);
 }
