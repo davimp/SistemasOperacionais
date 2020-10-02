@@ -186,7 +186,7 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         if(tempo_processamento != -1 && tempo_processamento >= aux.dt)
         {
             tempo_processamento = -1;
-            //finalizar processo
+            /*finalizar processo*/
             if(d){
                 fprintf(stderr, "Acabou a execução: %s %d %d %d\n", 
                 processos[aux.id].nome, processos[aux.id].t0, processos[aux.id].dt, processos[aux.id].deadline);
@@ -229,17 +229,6 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         }
         
         sleep(1);
-        //usleep(1000);
-        /*
-        cont = 0;
-        while(cont < 2){
-            play(k);
-            usleep(500000);
-            pausa(k);
-            k = (k+1)%tam_prontos;
-            cont++;
-        }
-        */
     }
 
     /*------------------------------*/

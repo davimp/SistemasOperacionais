@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/time.h>
 #include <string.h>
 
 void srtn(FILE* arq_trace, FILE* arq_saida, int d);

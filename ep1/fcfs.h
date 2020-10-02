@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
+#include <sys/time.h>
 
 void fcfs(FILE* arq_trace, FILE* arq_saida, int d);
 

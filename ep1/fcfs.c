@@ -1,32 +1,51 @@
 #include "fcfs.h"
 
+#define MAXN 10000
+Processo_fcfs processos[MAXN], prontos[MAXN];
+pthread_t tid[MAXN];
+pthread_mutex_t mutex;
 int livre;
+int liberou;
+int c_liberou;
+int id_liberou;
+int flag;
 
 /* Função para a thread */
 void * Thread_FCFS(void * a) {
-   livre = 0;
-   long int count;
    time_t tempo_inicial, tempo_atual;
+   long long tempo;
+   struct timeval t0, t1;
    int * arg = a;
+   int id;
    int dt;
-   dt = (*arg);
-   tempo_inicial = time(NULL);
-   tempo_atual = time(NULL);
-   count = -10000000;
-   while((tempo_atual - tempo_inicial) < dt){
-      count++;
-      tempo_atual = time(NULL);
+   pthread_mutex_lock(&mutex);
+   livre = 0;
+   pthread_mutex_unlock(&mutex);
+   id = (*arg);
+   free(arg);
+   dt = processos[id].dt;
+   tempo = 0;
+   gettimeofday(&t0, NULL);
+   if(flag) fprintf(stderr, "Começou a executar na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
+   while(tempo < (long long)dt*1000000){
+      gettimeofday(&t1, NULL);
+      tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;
    }
-   livre = 1;
+   liberou = 1;
+   c_liberou = sched_getcpu();
+   id_liberou = id;
    return NULL;
 }
 
+/*   
+    Coloca o processo p na ultima posição do vetor de processos v
+    e atualiza o tamanho do vetor.
+*/
 void push_fcfs(Processo_fcfs p, Processo_fcfs v[], int * tam)
 {
     Processo_fcfs aux;
     int i;
     i = (*tam);
-    /* coloca na ultima posição */
     v[i].id = p.id;
     strcpy(v[i].nome, p.nome);
     v[i].t0 = p.t0;
@@ -35,7 +54,10 @@ void push_fcfs(Processo_fcfs p, Processo_fcfs v[], int * tam)
     (*tam) = (*tam) + 1;
 }
 
-
+/*
+    Remove o primeiro processo do vetor v
+    e retorna o id dele.
+*/
 int pop_fcfs(Processo_fcfs v[], int * tam)
 {
     int i;
@@ -53,38 +75,38 @@ int pop_fcfs(Processo_fcfs v[], int * tam)
     return ret;
 }
 
+
+/*
+    'main'
+*/
 void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
 {
-    int tempo, tf;
+    int tempo;
     int muda;
-    pthread_t tid[10000];//MAXN
-    time_t tempo_inicial, tempo_atual;
+    int *argumento;
     int processo_atual;
-    int ok;
+    int acabou_de_liberar;
     int i, j, k;
-    Processo_fcfs processos[1000], prontos[10000]; //MAXN
-    int pos_proc; // Índice do próximo processo a chegar
     int num_proc, num_prontos;
+    liberou = 0;
     muda = 0;
     livre = 1;
-    num_proc = 0;
+    num_proc=num_prontos=0;
+    pthread_mutex_init(&mutex, NULL);
+    flag = d;
 
     while(fscanf(arq_trace, "%s %d %d %d", processos[num_proc].nome, &processos[num_proc].t0, &processos[num_proc].dt, &processos[num_proc].deadline) != EOF) //lê os processos
     {    
         processos[num_proc].id = num_proc;
         num_proc++;
-        fprintf(stderr, "num_proc: %d %s\n", num_proc, processos[num_proc-1].nome);
     }
     
 
-    j = 0; /*ninguem esta pronto ainda */
+    j = 0; /* ninguem esta pronto ainda */
     processo_atual = -1; /* ninguem rodando na cpu */
-    livre = 1; /* cpu esta livre */
-    tempo_inicial = time(NULL);
+    tempo = 0;
     while(num_prontos || (j < num_proc) || !livre){
-        tempo_atual = time(NULL);
-        tempo = tempo_atual - tempo_inicial;
-
+        acabou_de_liberar = 0;
         if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
 
         /* quem esta pronto vai pra fila de prontos */
@@ -94,40 +116,47 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
                 push_fcfs(processos[k], prontos, &num_prontos);
                 j++;
                 if(d){ 
-                    fprintf(stderr, "Chegou processo: %s %d %d %d\n", processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
+                    fprintf(stderr, "Chegou processo: %s %d %d %d\n", 
+                    processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
                 }
             }
             else break;
         }
-        /*imprime(prontos, num_prontos);*/
+
+        /* checa se algum processo acabou de terminar*/
+        if(liberou){
+            acabou_de_liberar = 1;
+            if(d){ 
+                fprintf(stderr, "Acabou a execução na CPU%d: %s %d %d %d\n", 
+                c_liberou, processos[id_liberou].nome, processos[id_liberou].t0, processos[id_liberou].dt, processos[id_liberou].deadline);
+                fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
+                processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            }
+            fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            processo_atual = -1;
+            liberou = 0;
+            pthread_mutex_lock(&mutex);
+            livre = 1;
+            pthread_mutex_unlock(&mutex);
+        }
 
         /* se tiver alguém pronto e a cpu estiver livre */
-        if(livre){
-            /*checa se algum processo acabou de terminar*/
-            if(processo_atual >= 0){
-                /*tf = tempo;*/
-                fprintf(arq_saida, "%s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
-                if(d){ 
-                    fprintf(stderr, "Acabou a execução: %s %d %d %d\n", processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-                    fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
-                }
-                processo_atual = -1;
+        if(livre && num_prontos){
+            processo_atual = pop_fcfs(prontos, &num_prontos);
+            argumento = malloc(sizeof(int));
+            (*argumento) = processos[processo_atual].id;
+            if(pthread_create(&tid[processo_atual], NULL, Thread_FCFS, (void*)argumento)){
+                printf("ERRO ao criar a Thread\n");
+                exit(1);
             }
-
-            if(num_prontos){
-                processo_atual = pop_fcfs(prontos, &num_prontos);
-                if(pthread_create(&tid[processo_atual], NULL, Thread_FCFS, (void*)&processos[processo_atual].dt)){
-                    printf("ERRO ao criar a Thread\n");
-                    exit(1);
-                }
-                if(d){ 
-                    fprintf(stderr, "Começou a executar na CPU: %s %d %d %d\n", processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-                }
-            }
+            if(acabou_de_liberar) muda++;
         }
-        if(d) fprintf(stderr, "Mudanças de contexto até agora: %d\n", muda);
+
         sleep(1);
+        if(d) fprintf(stderr, "Mudanças de contexto até agora: %d\n", muda);
+        tempo++;
     }
+
     /*-------------------------------*/
     for(i = 0; i < num_proc; i++){
         if(pthread_join(tid[i], NULL)){
@@ -135,16 +164,5 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
                 exit(1);
         }
     }
-    /* imprime o último */
-    tempo_atual = time(NULL);
-    tempo = tempo_atual - tempo_inicial;
-    if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
-    if(d){ 
-        fprintf(stderr, "Acabou a execução: %s %d %d %d\n", 
-        processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-        fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
-        processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
-    }
-    fprintf(arq_saida, "%s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
     fprintf(arq_saida, "%d\n", muda);
 }

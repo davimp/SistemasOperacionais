@@ -1,44 +1,61 @@
 #include"srtn.h"
 
-Processo_srtn prontos[10000], processos[10000]; //colocar MAXN talvez
-pthread_t tid[10000];
-pthread_mutex_t lock[10000];
-pthread_cond_t cond[10000];
-int play[10000];
+#define MAXN 10000
+Processo_srtn prontos[MAXN], processos[MAXN]; //colocar MAXN talvez
+pthread_t tid[MAXN];
+pthread_mutex_t lock[MAXN];
+pthread_mutex_t mutex;
+pthread_cond_t cond[MAXN];
+int play[MAXN];
+int livre;
+int liberou;
+int c_liberou;
+int id_liberou;
+int flag;
 
 /* Função para as threads */
 void * Thread_SRTN(void * a)
 {
-   long int count;
+   time_t tempo_inicial, tempo_atual;
+   struct timeval t0, t1, t2, t3;
    int * arg = a;
-   int id = (*arg);
+   int id, espera, parou;
+   long long tempo;
+   long long dt;
+   id = (*arg);
    free(arg);
-   double dt = (double)processos[id].dt;
-   double tempo;
-   clock_t t1, t2, t3, t4;
-   /*printf("debug:%d %d\n", id, dt);*/
-   count = -10000000;
+   dt = (long long)processos[id].dt;
+   dt = dt*1000000; /* microsegundos */
    tempo = 0;
-   t1 = clock();
-   printf("%s comecou em %d\n", processos[id].nome, sched_getcpu());
-   while((t2 - t1) < dt*CLOCKS_PER_SEC){
-       t2 = clock();
-       t3=t4=0;
-      count++;
-      /*verifica se pode continuar rodando*/
+   gettimeofday(&t0, NULL);
+   if(flag) fprintf(stderr, "Começou a executar na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
+   while(tempo < dt){
+      parou = 0;
       pthread_mutex_lock(&lock[id]);
       while(!play[id]){
-        printf("%s pausou em %d\n", processos[id].nome, sched_getcpu());
-        t3 = clock();
+        gettimeofday(&t2, NULL);
+        if(flag) fprintf(stderr, "Pausou a execução na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
         pthread_cond_wait(&cond[id], &lock[id]);
-        t4 = clock();
-        printf("%s voltou em  %d\n", processos[id].nome, sched_getcpu());
+        if(flag) fprintf(stderr, "Voltou a execução na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
+        gettimeofday(&t3, NULL);
+
+        parou = 1;
       }
-      /* fim da verificação */
       pthread_mutex_unlock(&lock[id]);
-      dt += (double)((t4-t3)/CLOCKS_PER_SEC);
+
+      gettimeofday(&t1, NULL);
+      
+      if(parou){
+        espera = (t3.tv_sec-t2.tv_sec)*1000000 + t3.tv_usec-t2.tv_usec;
+        dt += espera;
+      }
+      tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;
    }
-   printf("%s liberou em %d\n", processos[id].nome, sched_getcpu());
+
+   liberou = 1;
+   c_liberou = sched_getcpu();
+   id_liberou = id;
+
    return NULL;
 }
 
@@ -91,26 +108,21 @@ void pop_srtn(Processo_srtn v[], int * tam)
     }
 }
 
-void imprime(Processo_srtn v[], int tam){
-   int i;
-   printf("\nIMPRIMINDO\n");
-   for(i = 0; i < tam; i++){
-      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
-      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline);
-   }
-   printf("ACABOU DE IMPRIMIR\n\n");
-}
-
-
 void pause_thread(int id){
+    /*pausa*/
     pthread_mutex_lock(&lock[id]);
     play[id] = 0;
     pthread_mutex_unlock(&lock[id]);
+
+    /*cpu está livre*/
+    livre = 1;
 }
 
 void play_thread(int id){
+    /*cpu não está mais livre*/
+    livre = 0;
     /* se não foi criada ainda */
-    /*printf("PLAY_THREAD %d\n", id);*/
+    printf("id: %d\n", id);
     int * argumento;
     if(play[id] == -1){
         play[id]  = 1;
@@ -129,17 +141,28 @@ void play_thread(int id){
     }
 }
 
+void imprime(Processo_srtn v[], int tam){
+   int i;
+   printf("\nIMPRIMINDO\n");
+   for(i = 0; i < tam; i++){
+      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
+      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline);
+   }
+   printf("ACABOU DE IMPRIMIR\n\n");
+}
 
 void srtn(FILE* arq_trace, FILE* arq_saida, int d)
 {
-    time_t tempo_inicial, tempo_atual;
     int i, j, k, num_prontos, num_proc, processo_atual;
     int tempo;
     int muda = 0;
     int tinha_alguem_antes;
-    tempo_inicial = time(NULL); /* começa a contar o tempo  */
     i=j=k=0;
     num_proc=num_prontos = 0;
+    liberou = 0;
+    livre = 1;
+    pthread_mutex_init(&mutex, NULL);
+    flag = d;
    
     while(fscanf(arq_trace, "%s %d %d %d", processos[num_proc].nome, &processos[num_proc].t0, &processos[num_proc].dt, &processos[num_proc].deadline) != EOF){
         processos[num_proc].id = num_proc;
@@ -154,13 +177,26 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
     nao estiver vazia 
     */
     processo_atual = -1;
-    tempo_inicial = time(NULL);
-
+    tempo = 0;
     while(num_prontos || (j != num_proc)){
-        tempo_atual = time(NULL);
-        tempo = tempo_atual - tempo_inicial;
+        tinha_alguem_antes = 0;
 
         if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
+
+        if(liberou){
+            tinha_alguem_antes = 1;
+            pop_srtn(prontos, &num_prontos);
+            if(d){ 
+                fprintf(stderr, "Acabou a execução na CPU%d: %s %d %d %d\n", 
+                c_liberou, processos[id_liberou].nome, processos[id_liberou].t0, processos[id_liberou].dt, processos[id_liberou].deadline);
+                fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
+                processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            }
+            fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            processo_atual = -1; /*não tem ninguem na cpu*/
+            liberou = 0;
+            livre = 1;
+        }
 
         /* quem esta pronto vai pra fila de prontos */
         for(k = j; k < num_proc; k++){
@@ -178,60 +214,33 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
 
         /*imprime(prontos, num_prontos);*/
 
+        /* se tinha um processo na cpu que acabou agora */
         /* se tem alguem pronto */
         if(num_prontos){
-            if(processo_atual < 0 || processos[processo_atual].dt <= 0){ /* se a cpu está livre */
-                tinha_alguem_antes = 0;
-                /* coloca na cpu */
-                /*se tinha um processo na cpu que acabou agora*/
-                if(processo_atual >= 0){
-                    tinha_alguem_antes = 1;
-                    pop_srtn(prontos, &num_prontos);
-                    if(d){ 
-                        fprintf(stderr, "Acabou a execução: %s %d %d %d\n", 
-                        processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-                        fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
-                        processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
-                    }
-                    fprintf(arq_saida, "%s %d %d\n", processos[processo_atual].nome, tempo, tempo - processos[processo_atual].t0);
-                    processo_atual = -1; /*não tem ninguem na cpu*/
-                }
-
-                /*se algum estiver pronto, coloca ele na cpu */
-                if(num_prontos){
-                    processo_atual = prontos[0].id;
-                    /*printf("PROCESSO ATUAL: %d", prontos[0].id);*/
-                    play_thread(processo_atual);
-                    if(d){ 
-                        fprintf(stderr, "Começou a executar na CPU: %s %d %d %d\n", 
-                        processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-                    }
-                    if(tinha_alguem_antes) muda++;
-                }
+            if(livre && num_prontos){ /* se a cpu está livre e tem pelo menos alguém pronto */
+                printf("entrei: %d E %d\n", num_prontos, livre);
+                processo_atual = prontos[0].id;
+                play_thread(processo_atual);
+                if(tinha_alguem_antes) muda++;
             }
             else{ /* se a cpu está ocupada */
-               if(processos[processo_atual].dt > prontos[0].dt){/* poderia ser processo_atual != processos[0].id */
+               /* se o dt do que chegou é menor, então troca. caso contrário não faz nada */
+               /* poderia ser processo_atual != processos[0].id */
+               if(processos[processo_atual].dt > prontos[0].dt){
                     /*preempção*/
-
                     /*primeiro pausa quem ta executando*/
                     pause_thread(processo_atual);
-                    if(d){ 
-                        fprintf(stderr, "Pausou a execução na CPU: %s %d %d %d\n", 
-                        processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-                    }
 
                     /*depois executa quem chegou*/
                     processo_atual = prontos[0].id;
                     play_thread(processo_atual);
-                    if(d){ 
-                        fprintf(stderr, "Começou a executar na CPU: %s %d %d %d\n",
-                        processos[processo_atual].nome, processos[processo_atual].t0, processos[processo_atual].dt, processos[processo_atual].deadline);
-                    }
-                   muda++;
+
+                    muda++;
                }
             }
         }
         sleep(1);
+        tempo++;
         /*atualiza*/
         if(processo_atual >= 0){
             processos[processo_atual].dt--;
