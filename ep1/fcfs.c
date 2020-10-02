@@ -88,6 +88,8 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
     int acabou_de_liberar;
     int i, j, k;
     int num_proc, num_prontos;
+    int saida_tf[MAXN], saida_tr[MAXN];
+    
     liberou = 0;
     muda = 0;
     livre = 1;
@@ -117,14 +119,17 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
                 fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
                 processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             }
-            fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            //fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            saida_tf[id_liberou] = tempo;
+            saida_tr[id_liberou] = tempo - processos[id_liberou].t0;
+
             processo_atual = -1;
             liberou = 0;
             pthread_mutex_lock(&mutex);
             livre = 1;
             pthread_mutex_unlock(&mutex);
         }
-        
+
         /* quem esta pronto vai pra fila de prontos */
         for(k = j; k < num_proc; k++){
             if(processos[k].t0 <= tempo){
@@ -156,6 +161,9 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         sleep(1);
         if(d) fprintf(stderr, "Mudanças de contexto até agora: %d\n", muda);
         tempo++;
+        if(processo_atual >= 0){
+            processos[processo_atual].dt--;
+        }
     }
 
     /*-------------------------------*/
@@ -165,5 +173,9 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
                 exit(1);
         }
     }
+
+    for(i = 0; i < num_proc; i++)
+        fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
+
     fprintf(arq_saida, "%d\n", muda);
 }

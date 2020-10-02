@@ -1,0 +1,40 @@
+LEIAME
+
+Universidade de São Paulo
+Instituto de Matemática e Estatística
+Bacharelado em Ciência da Computação
+MAC0422 - Sistemas Operacionais(2020)
+Exercício Programa 1
+
+ALUNOS:
+Davi de Menezes Pereira (11221988);
+Luciano Rodrigues Saraiva Leão (11221817).
+
+1:Compilação
+
+    1.1:Para compilar os dois binários, as bibliotecas e fazer as ligações de uma
+    vez só basta digitar 'make'
+    1.2:Para compilar somente o bccsh basta digitar 'make bccsh'
+    1.3:Para compilar somente o simulador basta digitar 'make ep1'
+
+2:Execução
+
+    1.1:Para executar o bccsh basta digitar './bccsh'
+    1.2:Para executar deve-se digitar 
+
+    './ep1 <escalonador> <arquivo_trace> <arquivo_saida> <parametro opcional d>'
+    
+    Onde:
+        <escalonador> pode ser 1 para o First-Come First-Served
+                               2 para o Shortest Remaining Time Next
+                               3 para o Round-Robin
+
+        <arquivo_trace> é o nome do arquivo texto de trace a ser lido como 
+            entrada do programa (inclucindo o '.txt', caso tenha).
+
+        <arquivo_saida> é o nome do arquivo onde deseja armazenar a saida.
+        
+        <parametro opcional d> serve para mostrar as saídas de erro como
+            pedido no enuncidado. Para usar basta colocar um 'd', caso não
+            queira usar é só deixar vazio.
+        

@@ -2,11 +2,12 @@
 
 #define QUANTUM 1
 
-Processo_rr pronto[10000], processos[10000]; //colocar MAXN talvez
-pthread_t tid[10000];
-pthread_mutex_t lock[10000];
-pthread_cond_t cond[10000];
-int play[10000];
+#define MAXN 10000
+Processo_rr pronto[MAXN], processos[MAXN];
+pthread_t tid[MAXN];
+pthread_mutex_t lock[MAXN];
+pthread_cond_t cond[MAXN];
+int play[MAXN];
 int D;
 int liberou;
 int c_liberou;
@@ -24,7 +25,7 @@ void * Thread_RR(void * a)
    time_t t1, t2, t3, t4;
 
    //printf("debug:%d %d\n", id, dt);
-   
+
    count = -10000000;
    tempo = 0;
    t1 = time(NULL);

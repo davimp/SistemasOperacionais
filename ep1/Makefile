@@ -1,10 +1,10 @@
 CC = gcc
 CCFLAGS = #-Wall #-ansi -g #-pedantic #-Wno-unused-result
 OBJS_BCCSH = bccsh.o
-OBJS_SIM = simulador.o fcfs.o srtn.o rr.o
+OBJS_SIM = ep1.o fcfs.o srtn.o rr.o
 RM = rm
 #----------------------------------------
-binarios: bccsh ep1
+binarios: bccsh ep1 gera_teste
 
 bccsh: $(OBJS_BCCSH)
 	$(CC)  $(OBJS_BCCSH) -o bccsh -lreadline -pthread
@@ -13,10 +13,10 @@ bccsh.o: bccsh.c
 	$(CC)  $(CCFLAGS) -c bccsh.c -lreadline -pthread
 
 ep1: $(OBJS_SIM) 
-	$(CC) $(OBJS_SIM) -o simulador -pthread  
+	$(CC) $(OBJS_SIM) -o ep1 -pthread  
 
-simulador.o: simulador.c fcfs.h srtn.h rr.h
-	$(CC) $(CCFLAGS) -c simulador.c -pthread  
+ep1.o: ep1.c fcfs.h srtn.h rr.h
+	$(CC) $(CCFLAGS) -c ep1.c -pthread  
 
 fcfs.o: fcfs.c fcfs.h
 	$(CC) $(CCFLAGS) -c fcfs.c -pthread  
@@ -27,5 +27,11 @@ srtn.o: srtn.c srtn.h
 rr.o: rr.c rr.h
 	$(CC) $(CCFLAGS) -c rr.c -pthread
 
+gera_teste: gerador_testes.o
+	$(CC) gerador_testes.o -o gera_teste
+
+gerador_testes.o: gerador_testes.c
+	$(CC) $(CCFLAGS) -c gerador_testes.c
+
 clean:
-	$(RM) *.o bccsh simulador
+	$(RM) *.o bccsh ep1

@@ -33,5 +33,7 @@ int main(int argc, char* argv[])
     fclose(entrada);
     fclose(saida);
 
+    /* Ordenar os processos para facilitar a geração dos gráficos */
+
     return 0;
 }
