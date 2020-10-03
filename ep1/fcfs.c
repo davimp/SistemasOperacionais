@@ -12,28 +12,27 @@ int flag;
 
 /* Função para a thread */
 void * Thread_FCFS(void * a) {
+   livre = 0;
    time_t tempo_inicial, tempo_atual;
    long long tempo;
    struct timeval t0, t1;
    int * arg = a;
    int id;
-   int dt;
-   pthread_mutex_lock(&mutex);
-   livre = 0;
-   pthread_mutex_unlock(&mutex);
+   long long dt;
    id = (*arg);
    free(arg);
-   dt = processos[id].dt;
+   dt = 1000000*processos[id].dt;
    tempo = 0;
    gettimeofday(&t0, NULL);
    if(flag) fprintf(stderr, "Começou a executar na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
-   while(tempo < (long long)dt*1000000){
+   while(tempo < dt){
       gettimeofday(&t1, NULL);
       tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;
    }
    liberou = 1;
    c_liberou = sched_getcpu();
    id_liberou = id;
+   livre = 1;
    return NULL;
 }
 
@@ -107,7 +106,7 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
     j = 0; /* ninguem esta pronto ainda */
     processo_atual = -1; /* ninguem rodando na cpu */
     tempo = 0;
-    while(num_prontos || (j < num_proc) || !livre){
+    while(num_prontos || (j < num_proc) || processo_atual >= 0){
         acabou_de_liberar = 0;
         if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
 
@@ -125,9 +124,7 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
 
             processo_atual = -1;
             liberou = 0;
-            pthread_mutex_lock(&mutex);
             livre = 1;
-            pthread_mutex_unlock(&mutex);
         }
 
         /* quem esta pronto vai pra fila de prontos */
@@ -161,9 +158,9 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         sleep(1);
         if(d) fprintf(stderr, "Mudanças de contexto até agora: %d\n", muda);
         tempo++;
-        if(processo_atual >= 0){
+        /*if(processo_atual >= 0){
             processos[processo_atual].dt--;
-        }
+        }*/
     }
 
     /*-------------------------------*/

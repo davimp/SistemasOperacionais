@@ -3,7 +3,7 @@
 
 #define CONST_T0 5       //t0 máximo = CONST_T0 * número de processos //t0 = (rand() % t0 máximo)
 #define MAX_DT 15         //dt máximo
-#define CONST_DEADLINE 5  //deadline = t0 + dt + 1 + (rand() % MAX_DT) * (número de processos - (rand() % número de processos)
+#define CONST_DEADLINE 50  //deadline = t0 + dt + 1 + (rand() % MAX_DT) * (número de processos - (rand() % número de processos)
 
 
 //uso: ./gera_testes arg1 arg2
@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
     int num_processos; //número de processos
     int i, j;
     int t0_max;
+    int aux;
     int semente;
     FILE *f;
 

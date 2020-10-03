@@ -55,7 +55,6 @@ void * Thread_SRTN(void * a)
    liberou = 1;
    c_liberou = sched_getcpu();
    id_liberou = id;
-
    return NULL;
 }
 
