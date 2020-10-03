@@ -58,38 +58,26 @@ void * Thread_SRTN(void * a)
    return NULL;
 }
 
-void push(Processo_srtn p, Processo_srtn v[], int * tam)
+void push_srtn(Processo_srtn p, Processo_srtn v[], int * tam)
 {
-    Processo_srtn aux;
-    int i;
-    for(i = 0; i < (*tam); i++){
-        if(p.dt < v[i].dt){
-            /* troca */
-            aux.id = p.id;
-            strcpy(aux.nome, p.nome);
-            aux.t0 = p.t0;
-            aux.dt = p.dt;
-            aux.deadline = p.deadline;
-
-            p.id = v[i].id;
-            strcpy(p.nome, v[i].nome);
-            p.t0 = v[i].t0;
-            p.dt = v[i].dt;
-            p.deadline = v[i].deadline;
-
-            v[i].id = aux.id;
-            strcpy(v[i].nome, aux.nome);
-            v[i].t0 = aux.t0;
-            v[i].dt = aux.dt;
-            v[i].deadline = aux.deadline;
+    int i, pos;
+    pos = (*tam);
+    for(i = (*tam); i > 0; i--){
+        if(p.dt >= v[i-1].dt){
+            break;
         }
+        v[i].id = v[i-1].id;
+        strcpy(v[i].nome, v[i-1].nome);
+        v[i].t0 = v[i-1].t0;
+        v[i].dt = v[i-1].dt;
+        v[i].deadline = v[i-1].deadline;
+        pos--;
     }
-    /* coloca o ultimo */
-    v[i].id = p.id;
-    strcpy(v[i].nome, p.nome);
-    v[i].t0 = p.t0;
-    v[i].dt = p.dt;
-    v[i].deadline = p.deadline;
+    v[pos].id = p.id;
+    strcpy(v[pos].nome, p.nome);
+    v[pos].t0 = p.t0;
+    v[pos].dt = p.dt;
+    v[pos].deadline = p.deadline;
 
     (*tam) = (*tam) + 1;
 }
@@ -205,7 +193,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
         for(k = j; k < num_proc; k++){
             if(processos[k].t0 <= tempo){
                 /* coloca na fila de prontos */
-                push(processos[k], prontos, &num_prontos);
+                push_srtn(processos[k], prontos, &num_prontos);
                 j++;
                 if(d){ 
                     fprintf(stderr, "Chegou processo: %s %d %d %d\n", 
@@ -214,8 +202,6 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
             }
             else break;
         }
-
-        /*imprime(prontos, num_prontos);*/
 
         /* se tinha um processo na cpu que acabou agora */
         /* se tem alguem pronto */

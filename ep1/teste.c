@@ -1,228 +1,252 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <pthread.h>
-#include <unistd.h>
-#include <time.h>
-#include <string.h>
-#include <sched.h>
-#include<sys/time.h>
+#include"srtn.h"
 
-#define NITER 1000000000
-#define VEZES 5
+#define MAXN 10000
+Processo_srtn prontos[MAXN], processos[MAXN]; 
+pthread_t tid[MAXN];
+pthread_mutex_t lock[MAXN];
+pthread_mutex_t mutex;
+pthread_cond_t cond[MAXN];
+int play[MAXN];
+int livre;
+int liberou;
+int c_liberou;
+int id_liberou;
+int flag;
 
-int flag = 1;
-
-typedef struct processo{
-    int id;
-    char nome[40];
-    time_t t0;
-    time_t dt;
-    time_t deadline;
-    time_t tempo_comecou;
-    time_t tempo_acabou;
-} Processo;
-
-Processo pronto[10000], processos[10000]; //colocar MAXN talvez
-pthread_t tid[10000];
-pthread_mutex_t lock[10000];
-pthread_cond_t cond[10000];
-int play[10000];
-
-void imprime(Processo v[], int tam){
-   int i;
-   printf("\nIMPRIMINDO\n");
-   for(i = 0; i < tam; i++){
-      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
-      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline,);
-   }
-   printf("ACABOU DE IMPRIMIR\n\n");
-}
-
-void * Thread(void * a)
+/* Função para as threads */
+void * Thread_SRTN(void * a)
 {
-   int * arg = a;
-   int id = (*arg);
-   long long dt = (long long)processos[id].dt;
-   int cont;
-   long long tempo, espera;
-   int T;
-   /*time_t t1, t2, t3, t4;*/
+   time_t tempo_inicial, tempo_atual;
    struct timeval t0, t1, t2, t3;
-   struct timespec ts;
-   ts.tv_sec=0;
-   ts.tv_nsec=1000000;
+   int * arg = a;
+   int id, espera, parou;
+   long long tempo;
+   long long dt;
+   id = (*arg);
    free(arg);
-   printf("debug %d %d\n", id, dt);
-   tempo = 0.;
-   /*t1 = time(NULL);*/
-   dt = dt;
-   gettimeofday(&t1, NULL); 
-   gettimeofday(&t0, NULL); 
-   printf("inicio: %d\n", sched_getcpu());
-   T = 0;
-   while(T < dt*1000){
-      cont = 0;
-      espera = 0;
-      /*gettimeofday(&t2, NULL);
-      gettimeofday(&t3, NULL);*/
+   dt = (long long)processos[id].dt;
+   dt = dt*1000000; /* microsegundos */
+   tempo = 0;
+   gettimeofday(&t0, NULL);
+   if(flag) fprintf(stderr, "Começou a executar na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
+   while(tempo < dt){
+      parou = 0;
       pthread_mutex_lock(&lock[id]);
       while(!play[id]){
-         /*gettimeofday(&t2, NULL);*/
-         printf("pausou: %d\n", sched_getcpu());
-         pthread_cond_wait(&cond[id], &lock[id]);
-         printf("voltou: %d\n", sched_getcpu());
-         /*gettimeofday(&t3, NULL);*/
-         cont = 1;
+        gettimeofday(&t2, NULL);
+        if(flag) fprintf(stderr, "Pausou a execução na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
+        pthread_cond_wait(&cond[id], &lock[id]);
+        if(flag) fprintf(stderr, "Voltou a execução na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
+        gettimeofday(&t3, NULL);
+
+        parou = 1;
       }
       pthread_mutex_unlock(&lock[id]);
-      /*usleep(10000);
-      tempo += 0.01;*/
-      /*gettimeofday(&t1, NULL); 
+
+      gettimeofday(&t1, NULL);
+      
+      if(parou){
+        espera = (t3.tv_sec-t2.tv_sec)*1000000 + t3.tv_usec-t2.tv_usec;
+        dt += espera;
+      }
       tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;
-      espera = (t3.tv_sec-t2.tv_sec)*1000000 + t3.tv_usec-t2.tv_usec;*/
-      /*if(cont){
-          dt += espera;
-      }*/
-      nanosleep(&ts,NULL);
-      T += 1;
    }
-   printf("final: %d\n", sched_getcpu());
+
+   liberou = 1;
+   c_liberou = sched_getcpu();
+   id_liberou = id;
    return NULL;
 }
 
-void push(Processo p, Processo v[], int * tam)
+void push_srtn(Processo_srtn p, Processo_srtn v[], int * tam)
 {
-    Processo aux;
     int i;
-    for(i = 0; i < (*tam); i++){
-        if(p.dt < v[i].dt){
-            /* troca */
-            aux.id = p.id;
-            /*aux.nome = p.nome;*/
-            strcpy(aux.nome, p.nome);
-            aux.t0 = p.t0;
-            aux.dt = p.dt;
-            aux.deadline = p.deadline;
-            aux.tempo_comecou = p.tempo_comecou;
-            aux.tempo_acabou = p.tempo_acabou;
-
-            p.id = v[i].id;
-            /*p.nome = v[i].nome;*/
-            strcpy(p.nome, v[i].nome);
-            p.t0 = v[i].t0;
-            p.dt = v[i].dt;
-            p.deadline = v[i].deadline;
-            p.tempo_comecou = v[i].tempo_comecou;
-            p.tempo_acabou = v[i].tempo_acabou;
-
-            v[i].id = aux.id;
-            /*v[i].nome = aux.nome;*/
-            strcpy(v[i].nome, aux.nome);
-            v[i].t0 = aux.t0;
-            v[i].dt = aux.dt;
-            v[i].deadline = aux.deadline;
-            v[i].tempo_comecou = aux.tempo_comecou;
-            v[i].tempo_acabou = aux.tempo_acabou;
+    for(i = (*tam); i > 1; i--){
+        if(p.dt <= v[i-1].dt){
+            v[i].id = p.id;
+            strcpy(v[i].nome, p.nome);
+            v[i].t0 = p.t0;
+            v[i].dt = p.dt;
+            v[i].deadline = p.deadline;
+            break;
         }
+        v[i].id = v[i-1].id;
+        strcpy(v[i].nome, v[i-1].nome);
+        v[i].t0 = v[i-1].t0;
+        v[i].dt = v[i-1].dt;
+        v[i].deadline = v[i-1].deadline;
     }
-    /* coloca o ultimo */
-    v[i].id = p.id;
-    /*v[i].nome = p.nome;*/
-    strcpy(v[i].nome, p.nome);
-    v[i].t0 = p.t0;
-    v[i].dt = p.dt;
-    v[i].deadline = p.deadline;
-    v[i].tempo_comecou = p.tempo_comecou;
-    v[i].tempo_acabou = p.tempo_acabou;
 
     (*tam) = (*tam) + 1;
 }
 
-void pop_front(Processo v[], int * tam)
+void pop_srtn(Processo_srtn v[], int * tam)
 {
     int i;
     (*tam) = (*tam) - 1;
     for(i = 0; i < (*tam); i++){
-        /*[i] = [i+1]*/
         v[i].id = v[i+1].id;
-        /*v[i].nome = v[i+1].nome;*/
         strcpy(v[i].nome, v[i+1].nome);
         v[i].t0 = v[i+1].t0;
         v[i].dt = v[i+1].dt;
         v[i].deadline = v[i+1].deadline;
-        v[i].tempo_comecou = v[i+1].tempo_comecou;
-        v[i].tempo_acabou = v[i+1].tempo_acabou;
     }
 }
 
-
-
 void pause_thread(int id){
+    /*pausa*/
     pthread_mutex_lock(&lock[id]);
     play[id] = 0;
     pthread_mutex_unlock(&lock[id]);
+
+    /*cpu está livre*/
+    livre = 1;
 }
 
 void play_thread(int id){
-    pthread_mutex_lock(&lock[id]);
-    play[id] = 1;
-    pthread_cond_signal(&cond[id]);
-    pthread_mutex_unlock(&lock[id]);
+    /*cpu não está mais livre*/
+    livre = 0;
+    /* se não foi criada ainda */
+    int * argumento;
+    if(play[id] == -1){
+        play[id]  = 1;
+        argumento = malloc(sizeof(int));
+        (*argumento) = id;
+        if(pthread_create(&tid[id], NULL, Thread_SRTN, argumento)){
+            printf("ERRO ao criar a Thread\n");
+            exit(1);
+        }
+    }
+    else{ /* se a thread ja foi executada antes, só dar o play */
+        pthread_mutex_lock(&lock[id]);
+        play[id] = 1;
+        pthread_cond_signal(&cond[id]);
+        pthread_mutex_unlock(&lock[id]);
+    }
 }
 
-int main() {
-   int x,y;
-   pthread_mutex_t mut[10000];
+void imprime(Processo_srtn v[], int tam){
+   int i;
+   printf("\nIMPRIMINDO\n");
+   for(i = 0; i < tam; i++){
+      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
+      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline);
+   }
+   printf("ACABOU DE IMPRIMIR\n\n");
+}
 
-   int mutex;
-   int i, j, k, tam_prontos, tam_processos, processo_atual;
-   char nome[50]; /* nome do 'processo'*/
-   int t0, dt, deadline; /* dados do 'processo'*/
-   int tempo, tempo2;
-   int muda = 0;
-   time_t tempo_inicial, tempo_atual, tempo_iniciou, tempo_acabou;
-   int ok;
-   tempo_inicial = time(NULL); /* começa a contar o tempo  */
-   i=j=0;/* as filas estao vazias */
-   tam_processos=k=tam_prontos = 0;
-   pthread_mutex_init(&lock[0], NULL);
-   pthread_cond_init(&cond[0], NULL);
-   while(scanf("%s %d %d %d", processos[tam_processos].nome, &processos[tam_processos].t0, &processos[tam_processos].dt, &processos[tam_processos].deadline) != EOF){
-        processos[tam_processos].id = tam_processos;
-        processos[tam_processos].tempo_comecou = -1;
-        processos[tam_processos].tempo_acabou = -1;
-        play[tam_processos] = -1;
-        tam_processos++;
+void srtn(FILE* arq_trace, FILE* arq_saida, int d)
+{
+    int i, j, k, num_prontos, num_proc, processo_atual;
+    int tempo;
+    int muda = 0;
+    int tinha_alguem_antes;
+    int saida_tf[MAXN], saida_tr[MAXN];
+
+    i=j=k=0;
+    num_proc=num_prontos = 0;
+    liberou = 0;
+    livre = 1;
+    pthread_mutex_init(&mutex, NULL);
+    flag = d;
+   
+    while(fscanf(arq_trace, "%s %d %d %d", processos[num_proc].nome, &processos[num_proc].t0, &processos[num_proc].dt, &processos[num_proc].deadline) != EOF){
+        processos[num_proc].id = num_proc;
+        pthread_mutex_init(&lock[num_proc], NULL);
+        pthread_cond_init(&cond[num_proc], NULL);
+        play[num_proc] = -1;
+        num_proc++;
+    }
+    /* 
+    Enquanto ainda tiver processos para executar, 
+    ou seja, enquanto pelo menos uma das filas ainda
+    nao estiver vazia 
+    */
+    processo_atual = -1;
+    tempo = 0;
+    while(num_prontos || (j != num_proc)){
+        tinha_alguem_antes = 0;
+
+        if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
+
+        if(liberou){
+            tinha_alguem_antes = 1;
+            pop_srtn(prontos, &num_prontos);
+            if(d){ 
+                fprintf(stderr, "Acabou a execução na CPU%d: %s %d %d %d\n", 
+                c_liberou, processos[id_liberou].nome, processos[id_liberou].t0, processos[id_liberou].dt, processos[id_liberou].deadline);
+                fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
+                processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            }
+            //fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
+            saida_tf[id_liberou] = tempo;
+            saida_tr[id_liberou] = tempo - processos[id_liberou].t0;
+
+            processo_atual = -1; /*não tem ninguem na cpu*/
+            liberou = 0;
+            livre = 1;
+        }
+
+        /* quem esta pronto vai pra fila de prontos */
+        for(k = j; k < num_proc; k++){
+            if(processos[k].t0 <= tempo){
+                /* coloca na fila de prontos */
+                push(processos[k], prontos, &num_prontos);
+                j++;
+                if(d){ 
+                    fprintf(stderr, "Chegou processo: %s %d %d %d\n", 
+                    processos[k].nome, processos[k].t0, processos[k].dt, processos[k].deadline);
+                }
+            }
+            else break;
+        }
+
+        imprime(prontos, num_prontos);
+
+        /* se tinha um processo na cpu que acabou agora */
+        /* se tem alguem pronto */
+        if(num_prontos){
+            if(livre && num_prontos){ /* se a cpu está livre e tem pelo menos alguém pronto */
+                /*printf("entrei: %d E %d\n", num_prontos, livre);*/
+                processo_atual = prontos[0].id;
+                play_thread(processo_atual);
+                if(tinha_alguem_antes) muda++;
+            }
+            else{ /* se a cpu está ocupada */
+               /* se o dt do que chegou é menor, então troca. caso contrário não faz nada */
+               /* poderia ser processo_atual != processos[0].id */
+               if(processos[processo_atual].dt > prontos[0].dt){
+                    /*preempção*/
+                    /*primeiro pausa quem ta executando*/
+                    pause_thread(processo_atual);
+                    printf("Pausei %d", processo_atual);
+                    /*depois executa quem chegou*/
+                    processo_atual = prontos[0].id;
+                    play_thread(processo_atual);
+                    printf(" e comecei %d\n", processo_atual);
+                    muda++;
+               }
+            }
+        }
+        sleep(1);
+        tempo++;
+        /*atualiza*/
+        if(processo_atual >= 0){
+            processos[processo_atual].dt--;
+            prontos[0].dt--;
+        }
     }
 
-    printf("debug 1: %d\n", sched_getcpu());
-   imprime(processos, tam_processos);
-
-
-   imprime(pronto, tam_prontos);
-
-    play[0] = 1;
-    int * ide;
-    ide = malloc(sizeof(int));
-    (*ide) = 0;
-    if(pthread_create(&tid[0], NULL, Thread, (void*)ide)){
-        printf("ERRO ao criar a Thread\n");
-        exit(1);
+    /*------------------------*/
+    for(i = 0; i < num_proc; i++){
+        if(pthread_join(tid[i], NULL)){
+                printf("ERRO ao dar join na Thread %d\n", i);
+                exit(1);
+        }
     }
-    printf("debug 2: %d\n", sched_getcpu());
 
-    /*sleep(5);
-    pause_thread(0);
-    sleep(5);
-    play_thread(0);*/
+    for(i = 0; i < num_proc; i++)
+        fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
 
-    if(pthread_join(tid[0], NULL)){
-        printf("ERRO ao dar join na Thread\n");
-        exit(1);
-    }
-    printf("debug 4: %d\n", sched_getcpu());
-
-   return 0;
+    fprintf(arq_saida, "%d\n", muda);
 }

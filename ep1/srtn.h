@@ -1,5 +1,6 @@
 #ifndef srtn_h
 #define srtn_h
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
