@@ -1,7 +1,7 @@
 #include"srtn.h"
 
 #define MAXN 10000
-Processo_srtn prontos[MAXN], processos[MAXN]; //colocar MAXN talvez
+Processo_srtn prontos[MAXN], processos[MAXN]; 
 pthread_t tid[MAXN];
 pthread_mutex_t lock[MAXN];
 pthread_mutex_t mutex;

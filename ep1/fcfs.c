@@ -158,9 +158,6 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         sleep(1);
         if(d) fprintf(stderr, "Mudanças de contexto até agora: %d\n", muda);
         tempo++;
-        /*if(processo_atual >= 0){
-            processos[processo_atual].dt--;
-        }*/
     }
 
     /*-------------------------------*/
