@@ -13,21 +13,24 @@ int flag;
 /* Função para a thread */
 void * Thread_FCFS(void * a) {
    livre = 0;
-   time_t tempo_inicial, tempo_atual;
+   time_t tempo1, tempo2;
    long long tempo;
-   struct timeval t0, t1;
+   /*struct timeval t0, t1;*/
    int * arg = a;
    int id;
-   long long dt;
+   int dt;
    id = (*arg);
    free(arg);
-   dt = 1000000*processos[id].dt;
+   /*dt = 1000000*processos[id].dt;*/
    tempo = 0;
-   gettimeofday(&t0, NULL);
+   /*gettimeofday(&t0, NULL);*/
+   tempo1 = time(NULL);
    if(flag) fprintf(stderr, "Começou a executar na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
    while(tempo < dt){
-      gettimeofday(&t1, NULL);
-      tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;
+      /*gettimeofday(&t1, NULL);*/
+      tempo2 = time(NULL);
+      /*tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;*/
+      tempo = tempo2 - tempo1;
    }
    liberou = 1;
    c_liberou = sched_getcpu();
@@ -110,6 +113,7 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         acabou_de_liberar = 0;
         if(d) fprintf(stderr, "\nTempo: %d\n", tempo);
 
+        /* checa se algum processo acabou de terminar*/
         if(liberou){
             acabou_de_liberar = 1;
             if(d){ 
@@ -141,7 +145,6 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
             else break;
         }
 
-        /* checa se algum processo acabou de terminar*/
 
         /* se tiver alguém pronto e a cpu estiver livre */
         if(livre && num_prontos){

@@ -1,5 +1,6 @@
 #ifndef rr_h
 #define rr_h
+#define _GNU_SOURCE
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +18,6 @@ typedef struct processo_rr{
     time_t t0;
     time_t dt;
     time_t deadline;
-
     struct processo_rr *prox;
 } Processo_rr;
 

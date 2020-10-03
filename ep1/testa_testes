@@ -1,8 +1,10 @@
 #!/bin/bash
 
 for file in trace*; do
+for i in $(seq 1 30); do
 #./ep1 1 "$file" "saida";
-./ep1 1 "$file" "saida_fcfs_""$file"
-./ep1 2 "$file" "saida_srtn_""$file"
-./ep1 3 "$file" "saida_rr_""$file"
+./ep1 1 "$file" "saida_fcfs_""$file""_""$i"
+./ep1 2 "$file" "saida_srtn_""$file""_""$i"
+./ep1 3 "$file" "saida_rr_""$file""_""$i"
+done
 done

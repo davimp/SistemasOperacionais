@@ -1,6 +1,7 @@
 #!/bin/bash
 
 gcc gerador_testes.c -o gerador_testes
+./gerador_testes 5 trace5 5
 ./gerador_testes 10 trace10 10
 ./gerador_testes 20 trace20 20
 ./gerador_testes 50 trace50 50

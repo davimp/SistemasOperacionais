@@ -1,0 +1,164 @@
+
+Tempo: 0
+Chegou processo: p0 0 14 16
+Começou a executar na CPU4: p0
+
+Tempo: 1
+
+Tempo: 2
+Chegou processo: p1 2 6 9
+Pausou a execução na CPU4: p0
+Começou a executar na CPU6: p1
+
+Tempo: 3
+
+Tempo: 4
+
+Tempo: 5
+Chegou processo: p2 5 9 15
+
+Tempo: 6
+Chegou processo: p3 6 1 13
+Pausou a execução na CPU6: p1
+Começou a executar na CPU4: p3
+
+Tempo: 7
+Acabou a execução na CPU4: p3 6 0 13
+Linha a ser imprimida: p3 7 1
+Voltou a execução na CPU6: p1
+
+Tempo: 8
+
+Tempo: 9
+Acabou a execução na CPU6: p1 2 0 9
+Linha a ser imprimida: p1 9 7
+Chegou processo: p4 9 5 20
+Começou a executar na CPU4: p4
+
+Tempo: 10
+
+Tempo: 11
+
+Tempo: 12
+Chegou processo: p5 12 8 22
+
+Tempo: 13
+
+Tempo: 14
+Acabou a execução na CPU4: p4 9 0 20
+Linha a ser imprimida: p4 14 5
+Chegou processo: p6 14 9 25
+Chegou processo: p7 14 1 16
+Começou a executar na CPU4: p7
+
+Tempo: 15
+Acabou a execução na CPU4: p7 14 0 16
+Linha a ser imprimida: p7 15 1
+Começou a executar na CPU4: p5
+
+Tempo: 16
+
+Tempo: 17
+Chegou processo: p8 17 3 24
+Pausou a execução na CPU4: p5
+Começou a executar na CPU7: p8
+
+Tempo: 18
+Chegou processo: p9 18 2 25
+
+Tempo: 19
+
+Tempo: 20
+Acabou a execução na CPU1: p8 17 0 24
+Linha a ser imprimida: p8 20 3
+Começou a executar na CPU3: p9
+
+Tempo: 21
+
+Tempo: 22
+Acabou a execução na CPU3: p9 18 0 25
+Linha a ser imprimida: p9 22 4
+Voltou a execução na CPU5: p5
+
+Tempo: 23
+
+Tempo: 24
+
+Tempo: 25
+
+Tempo: 26
+
+Tempo: 27
+
+Tempo: 28
+Acabou a execução na CPU5: p5 12 0 22
+Linha a ser imprimida: p5 28 16
+Começou a executar na CPU0: p6
+
+Tempo: 29
+
+Tempo: 30
+
+Tempo: 31
+
+Tempo: 32
+
+Tempo: 33
+
+Tempo: 34
+
+Tempo: 35
+
+Tempo: 36
+
+Tempo: 37
+Acabou a execução na CPU0: p6 14 0 25
+Linha a ser imprimida: p6 37 23
+Começou a executar na CPU3: p2
+
+Tempo: 38
+
+Tempo: 39
+
+Tempo: 40
+
+Tempo: 41
+
+Tempo: 42
+
+Tempo: 43
+
+Tempo: 44
+
+Tempo: 45
+
+Tempo: 46
+Acabou a execução na CPU0: p2 5 0 15
+Linha a ser imprimida: p2 46 41
+Voltou a execução na CPU6: p0
+
+Tempo: 47
+
+Tempo: 48
+
+Tempo: 49
+
+Tempo: 50
+
+Tempo: 51
+
+Tempo: 52
+
+Tempo: 53
+
+Tempo: 54
+
+Tempo: 55
+
+Tempo: 56
+
+Tempo: 57
+
+Tempo: 58
+Acabou a execução na CPU6: p0 0 0 16
+Linha a ser imprimida: p0 58 58

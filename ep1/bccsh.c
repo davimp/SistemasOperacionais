@@ -16,7 +16,7 @@ void read_command(char command[], char* parameters[]);
 int main(int agrc, char* argv[]) 
 {
 	int i = 0;
-	int status; // tenta compilar no gcc vê se vai
+	int status; 
 	
 	char command[200];
 	char *parameters[200];
@@ -103,12 +103,10 @@ void read_command(char command[], char* parameters[])
 	int i = 0, j = 0, k = 0;
 	int vazio = 1;
 	char *string_temp;
-	string_temp = readline("} "); // strtok(command, " ")
+	string_temp = readline("} "); 
 	strcpy(command, string_temp);
 
 	free(string_temp);
-
-	printf("===> %s\n", command);
 
 	i = 0;
 
@@ -122,12 +120,9 @@ void read_command(char command[], char* parameters[])
 	{
 		command[0] = '\0';
 		parameters[0] = NULL;
-		puts("SAIU 2");
 		return;
 	}
 	add_history(command);
-
-	puts("LOOP");
 	i = 0; j = 0; k = 0;
 	while(command[i] != '\0')
 	{
@@ -147,15 +142,5 @@ void read_command(char command[], char* parameters[])
 	}
 	parameters[j] = NULL;
 
-	printf("Quantos 1: %d\n", j);
-
 	strcpy(command, parameters[0]);
-
-
-	puts("SAIU");
-	printf("Comando: %s\nParametros: %s\n", command, parameters[0]);
-
-
-	printf("ponteiro durante: %x\n", command);
-
 }
