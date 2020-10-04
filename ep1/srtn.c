@@ -115,7 +115,7 @@ void play_thread(int id){
         argumento = malloc(sizeof(int));
         (*argumento) = id;
         if(pthread_create(&tid[id], NULL, Thread_SRTN, argumento)){
-            printf("ERRO ao criar a Thread\n");
+            fprintf(stderr, "ERRO ao criar a Thread\n");
             exit(1);
         }
     }
@@ -127,16 +127,6 @@ void play_thread(int id){
     }
 }
 
-void imprime(Processo_srtn v[], int tam){
-   int i;
-   printf("\nIMPRIMINDO\n");
-   for(i = 0; i < tam; i++){
-      printf("id:%d | nome: %s | t0:%d | dt:%d | deadline:%d\n",
-      v[i].id, v[i].nome, v[i].t0, v[i].dt, v[i].deadline);
-   }
-   printf("ACABOU DE IMPRIMIR\n\n");
-}
-
 void srtn(FILE* arq_trace, FILE* arq_saida, int d)
 {
     int i, j, k, num_prontos, num_proc, processo_atual;
@@ -144,6 +134,7 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
     int muda = 0;
     int tinha_alguem_antes;
     int saida_tf[MAXN], saida_tr[MAXN];
+    int estourou; /*guarda quantos processos estouraram a deadline*/
 
     i=j=k=0;
     num_proc=num_prontos = 0;
@@ -180,7 +171,6 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                 fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
                 processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             }
-            //fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             saida_tf[id_liberou] = tempo;
             saida_tr[id_liberou] = tempo - processos[id_liberou].t0;
 
@@ -207,7 +197,6 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
         /* se tem alguem pronto */
         if(num_prontos){
             if(livre && num_prontos){ /* se a cpu está livre e tem pelo menos alguém pronto */
-                /*printf("entrei: %d E %d\n", num_prontos, livre);*/
                 processo_atual = prontos[0].id;
                 play_thread(processo_atual);
                 if(tinha_alguem_antes) muda++;
@@ -219,11 +208,9 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
                     /*preempção*/
                     /*primeiro pausa quem ta executando*/
                     pause_thread(processo_atual);
-                    printf("Pausei %d", processo_atual);
                     /*depois executa quem chegou*/
                     processo_atual = prontos[0].id;
                     play_thread(processo_atual);
-                    printf(" e comecei %d\n", processo_atual);
                     muda++;
                }
             }
@@ -240,13 +227,17 @@ void srtn(FILE* arq_trace, FILE* arq_saida, int d)
     /*------------------------*/
     for(i = 0; i < num_proc; i++){
         if(pthread_join(tid[i], NULL)){
-                printf("ERRO ao dar join na Thread %d\n", i);
+                fprintf(stderr, "ERRO ao dar join na Thread %d\n", i);
                 exit(1);
         }
     }
 
-    for(i = 0; i < num_proc; i++)
+    /* imprime no arquivo de saida */
+    for(i = 0; i < num_proc; i++){
         fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
+        if(saida_tf[i] > processos[i].deadline) estourou++;
+    }
 
     fprintf(arq_saida, "%d\n", muda);
+    fprintf(arq_saida, "%d\n", estourou);
 }

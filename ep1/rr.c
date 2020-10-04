@@ -23,9 +23,6 @@ void * Thread_RR(void * a)
    int dt = processos[id].dt;
    double tempo;
    time_t t1, t2, t3, t4;
-
-   //printf("debug:%d %d\n", id, dt);
-
    count = -10000000;
    tempo = 0;
    t1 = time(NULL);
@@ -157,6 +154,7 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
     time_t tempo_processamento, tempo_comeca_processo;
     int ok;
     int saida_tf[MAXN], saida_tr[MAXN];
+    int estourou; /*guarda quantos processos estouraram a deadline*/
 
     tempo_inicial = time(NULL); /* começa a contar o tempo  */
     i=j=k=0;
@@ -292,11 +290,14 @@ void rr(FILE* arq_trace, FILE* arq_saida, int d)
         }
     }
 
-    for(i = 0; i < num_proc; i++)
+    for(i = 0; i < num_proc; i++){
         fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
+        if(saida_tf[i] > processos[i].deadline) estourou++;
+    }
 
     fprintf(arq_saida, "%d\n", muda);
-
+    fprintf(arq_saida, "%d\n", estourou);
+    
     if(d)
         fprintf(stderr, "Mudanças de contexto: %d\n", muda);
 

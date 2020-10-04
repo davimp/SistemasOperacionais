@@ -1,95 +1,11 @@
-Simulador
-
-O simulador é um programa em .c que recebe como parâmetros na linha de comando
-o que foi especificado no enunciado 
-(./ep1 <escalonador> <arquivo_trace> <arquivo_saida> <parametro opcional d>),
-abre os arquivos de entrada e de saida, mada para o escalonador escolhido e
-depois fecha esses arquivos.
-
-Escalonadores
-
-Os escalonadores foram feitos como três bibliotecas diferentes, cada um com 
-seus arquivos .c e .h.
-
-Algumas das estruturas utilizadas nos escalonadores são idênticas, mas mesmo
-assim decidimos criar cada uma delas em cada arquivo, mesmo que repetida
-(como é o caso das structs processo_fcfs e processo_srtn) por motivos de teste e
-adaptação do código na hora de debugar.
-
-De um modo geral, todos seguem uma mesma estrutura.
-No .h de cada escalonador tem um protótipo de uma funçãodo tipo 
-<escalonador>(arquivo_de_entrada, arquivo_de_saida, parametro_opcional_d) 
-que é a função principal, e uma struct para os processos.
-
-No .c também temos algumas semelhanças em cada um deles. Temos um vetor de processos
-para armazenar todos os processos e temos um vetor de prontos que vai armazenando os
-processos que estão prontos, por exemplo.
-
-Na execução também seguimos a mesma ideia em cada escalonador:
-primeiramente lemos todos as linhas do arquivo trace e guardamos todos os processos num
-vetor de processos. Depois disso entramos num loop, enquanto ainda existirem processos
-que ainda não ficaram prontos e enquanto ainda existirem processos prontos esperando 
-serem executados realizamos o loop. No inicio de cada loop checamos se algum processo acabou
-de finalizar, logo depois checamos quem ficou pronto e passamos para a fila de prontos, e finalmente
-executamos o algoritmos de cada escalonador para decidir quem irá usar a CPU. Ao final de cada loop,
-dormimos os escalonador por um segundo e fazemos tudo novamente ou saimos do loop, esperamos as threads
-acabarem caso alguma esteja rodando (embora teoricamente não estejam mais), e saímos do escalonador.
-
-TEMPO
-
-No desenvolvimento do EP1, um dos maiores desafios foi a sincronização. Testamos algumas bibliotecas
-e diferentes funções para controlar o tempo, como clock(), time() da biblioteca <time.h> e gettimeofday()
-da <sys/time.h>,além das funções do tipo sleep. Porém tivemos muitos problemas para sincronizar, já que,
-por exemplo, a função time() às vezes causava uma imprecisão de quase um segundo e a clock() tinha problemas
-com o sleep. No caso de usar só sleeps, não gostamos pois o consumo da CPU por parte das threads estava muitos
-baixo e para consertar isso teríamos que alterar muita coisa.
-
-Outro fator que dificultou é que, apesar de estarmos considerando uma CPU só para as threads, pelo escalonador
-gastar pouco tempo e CPU em relação às threads, consideramos que ele rodaria
-""em paralelo"" em relação as threads. Então quando consideramos 1 segundo no loop do escalonador, na verdade
-ele executou 1 + epslon segundos.
-
-No final, conseguimos ajustar para ficar sincronizado usando as funções time() ou gettimeofday() e sleep()
-dependendo do caso, para os testes que fizemos.
-
-
-THREADS 
-
-Para pausar e voltar a executar as threads usamos o sugerido em:
-https://stackoverflow.com/questions/1606400/how-to-sleep-or-pause-a-pthread-in-c-on-linux
-
-Considerando que na thread temos:
-pthread_mutex_lock(&lock);
-    while(!play) { /* We're paused */
-        pthread_cond_wait(&cond, &lock); /* Wait for play signal */
-    }
-pthread_mutex_unlock(&lock);
-
-Para pausar:
-pthread_mutex_lock(&lock);
-play = 0;
-pthread_mutex_unlock(&lock);
-
-Para dar play:
-pthread_mutex_lock(&lock);
-play = 1;
-pthread_cond_signal(&cond);
-pthread_mutex_unlock(&lock);
-
-
-E para achar em qual CPU a thread está ou liberou, usamos sched_getcpu()
-da biblioteca <sched.h>.
-
-
-ESCALONADORES FCFS E SRTN
-
-FCFS: Tiramos um processo da fila de prontos e executamos ele até o final.
-Quando ele acaba, executamos o próximo pronto em ordem de chegada.
-
-SRTN: Deixamos os processos na fila de prontos, ordenados pelo dt, de modo 
-que o primeiro da fila é o que está sendo executado, quando ele acaba de 
-executar tiramos ele da fila. 
-
-ESCALONADOR ROUND ROBIN
-
-/* falar da escolha do quantum e o motivo de não poder ser menor que um */
+p0 11 10
+p1 18 17
+p2 21 20
+p3 30 26
+p4 31 27
+p5 51 46
+p6 64 57
+p7 75 65
+p8 81 66
+p9 85 69
+9

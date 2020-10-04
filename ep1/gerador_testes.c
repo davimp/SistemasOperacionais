@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #define CONST_T0 5       //t0 máximo = CONST_T0 * número de processos //t0 = (rand() % t0 máximo)
-#define MAX_DT 15         //dt máximo
+#define MAX_DT 9         //dt máximo
 #define CONST_DEADLINE 50  //deadline = t0 + dt + 1 + (rand() % MAX_DT) * (número de processos - (rand() % número de processos)
 
 

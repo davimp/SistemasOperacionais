@@ -15,21 +15,17 @@ void * Thread_FCFS(void * a) {
    livre = 0;
    time_t tempo1, tempo2;
    long long tempo;
-   /*struct timeval t0, t1;*/
    int * arg = a;
    int id;
    int dt;
    id = (*arg);
+   dt = processos[id].dt;
    free(arg);
-   /*dt = 1000000*processos[id].dt;*/
    tempo = 0;
-   /*gettimeofday(&t0, NULL);*/
    tempo1 = time(NULL);
    if(flag) fprintf(stderr, "Começou a executar na CPU%d: %s\n", sched_getcpu(), processos[id].nome);
    while(tempo < dt){
-      /*gettimeofday(&t1, NULL);*/
       tempo2 = time(NULL);
-      /*tempo = (t1.tv_sec-t0.tv_sec)*1000000 + t1.tv_usec-t0.tv_usec;*/
       tempo = tempo2 - tempo1;
    }
    liberou = 1;
@@ -91,6 +87,7 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
     int i, j, k;
     int num_proc, num_prontos;
     int saida_tf[MAXN], saida_tr[MAXN];
+    int estourou; /*guarda quantos processos estouraram a deadline*/
     
     liberou = 0;
     muda = 0;
@@ -122,7 +119,6 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
                 fprintf(stderr, "Linha a ser imprimida: %s %d %d\n", 
                 processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             }
-            //fprintf(arq_saida, "%s %d %d\n", processos[id_liberou].nome, tempo, tempo - processos[id_liberou].t0);
             saida_tf[id_liberou] = tempo;
             saida_tr[id_liberou] = tempo - processos[id_liberou].t0;
 
@@ -171,8 +167,12 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         }
     }
 
-    for(i = 0; i < num_proc; i++)
+    /*imprime arquivo de saida */
+    for(i = 0; i < num_proc; i++){
         fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
+        if(saida_tf[i] > processos[i].deadline) estourou++;
+    }
 
     fprintf(arq_saida, "%d\n", muda);
+    fprintf(arq_saida, "%d\n", estourou);
 }
