@@ -167,6 +167,7 @@ void fcfs(FILE* arq_trace, FILE* arq_saida, int d)
         }
     }
 
+    estourou = 0;
     /*imprime arquivo de saida */
     for(i = 0; i < num_proc; i++){
         fprintf(arq_saida, "%s %d %d\n", processos[i].nome, saida_tf[i], saida_tr[i]);
