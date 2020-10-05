@@ -1,0 +1,139 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h> 
+#include <errno.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <sys/types.h> 
+#include <signal.h>
+#include <unistd.h>
+#include <readline/readline.h>
+#include <readline/history.h>
+
+void type_prompt();
+void read_command(char command[], char* parameters[]);
+
+int main(int agrc, char* argv[]) 
+{
+	int i = 0;
+	int status; 
+	
+	char command[200];
+	char *parameters[200];
+	int quit = 0;
+	pid_t pid;
+	
+	for(i = 0; i < 200; i++){
+		parameters[i] = NULL;
+	}
+	
+	while(1){
+		type_prompt();
+		read_command(command, parameters); //lê o comando digitado
+		
+
+	
+		/* roda o comando se for uma das chamadas se sistema descritas no ep */
+		if(strcmp(command, "mkdir") == 0){
+			/*mkdir <diretorio>*/
+			mkdir(parameters[1], 775);
+		}
+		else if(strcmp(command, "kill") == 0){
+			/*kill -9 <PID>*/
+			/*int kill(pid_t pid, int sig);*/
+			pid = atoi(parameters[2]);
+			kill(pid, 9);
+		}
+		else if(strcmp(command, "ln") == 0){
+			/*ln -s <arquivo> <link>*/
+			/*int symlink(const char *target, const char *linkpath);*/
+			symlink(parameters[2], parameters[3]);
+		}	
+		else if(strcmp(command, "quit") == 0){
+			/*ln -s <arquivo> <link>*/
+			/*int symlink(const char *target, const char *linkpath);*/
+			/*symlink(,);*/
+			quit = 1;
+		}	
+		/* senão cria um processo com o fork e em seguida chama o execve */
+		else if (fork() != 0) {
+			/* Codigo do pai */
+			/* O processo pai só precisa esperar o filho acabar*/
+			waitpid(-1, &status,0);
+		}
+		else {
+			/* Codigo do filho */
+			execve(command, parameters, 0);
+		}
+		int ll = 1;
+		for(i = 0; i < 200; i++)
+		{
+			if(parameters[i] != NULL) free(parameters[i]);
+			else if(ll) 
+			{
+				/*printf("Quantos 2: %d\n", i);*/
+				ll = 0;
+			}
+			parameters[i] = NULL;
+		}
+
+		if(quit)
+		{
+			rl_clear_history();
+			return 0;
+		}
+	}
+	return 0;
+}
+
+void type_prompt()
+{
+	printf("{%s@%s", getenv("USER"), getenv("PWD"));
+}
+
+void read_command(char command[], char* parameters[])
+{
+	int i = 0, j = 0, k = 0;
+	int vazio = 1;
+	char *string_temp;
+	string_temp = readline("} "); 
+	strcpy(command, string_temp);
+
+	free(string_temp);
+
+	i = 0;
+
+	while(command[i] != '\0' && vazio)
+	{
+		if(command[i] != ' ')
+			vazio = 0;
+		i++;
+	}
+	if(vazio)
+	{
+		command[0] = '\0';
+		parameters[0] = NULL;
+		return;
+	}
+	add_history(command);
+	i = 0; j = 0; k = 0;
+	while(command[i] != '\0')
+	{
+		while(command[i] == ' ') i++;
+
+		if(command[i] == '\0') break;
+
+		parameters[j] = malloc(200*sizeof(char));
+
+		k = 0;
+		while(command[i] != ' ' && command[i] != '\0')
+			parameters[j][k++] = command[i++];
+		parameters[j][k] = '\0';
+		
+		j++;
+
+	}
+	parameters[j] = NULL;
+
+	strcpy(command, parameters[0]);
+}
