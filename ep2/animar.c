@@ -9,7 +9,9 @@ int main()
 
     f = fopen("corrida.dat", "r");
 
-    fscanf(f, "%d %d", &n, &d);
+    fscanf(f, "%d %d", &d, &n);
+    //printf("%d %d\n", d, n);
+    //return 0;
 
     while(fscanf(f, "%d", &t) !=  EOF)
     {
@@ -26,7 +28,10 @@ int main()
             for(i = 0; i < d; i++)
             {
                 fscanf(f, "%d", &a);
-                printf("%4d|", a);
+                if(a != 0)
+                    printf("\033[0;31m%4d\033[0m|", a);
+                else
+                    printf("   0|");
             }
             printf("\n");
         }
@@ -36,7 +41,7 @@ int main()
             printf("_____");
         puts("");
         usleep(650000);
-        system("clear");
+        //system("clear");
     }
 
     fclose(f);
