@@ -21,7 +21,7 @@ typedef struct
 } Parametros;
 
 int d, n;
-int pista[10][MAXN]; /* pista tem tamanho d */
+int pista[15][MAXN]; /* pista tem tamanho d */
 int tempo, intervalo;
 pthread_t ciclista[MAXN]; /*devem ser criados n threads para os ciclistas*/
 Parametros parametros[MAXN];
@@ -32,7 +32,7 @@ _Atomic int volta[MAXN]; // volta[i] representa quantos ciclistas já realizaram
 int prox_volta;
 pthread_mutex_t mutex_pista;
 pthread_mutex_t mutex_volta[MAXN];
-pthread_mutex_t mutex[10][MAXN];
+pthread_mutex_t mutex[15][MAXN];
 pthread_barrier_t barreira;
 int posicao = 1;
 
@@ -53,6 +53,7 @@ void * Thread(void * a){
     {
         /* verifica se nesse intervalo de tempo já executou as ações */
         /* caso 1: ja foi processado nesse periodo */
+        //fprintf(stderr, "id --> %d n_atual --> %d processados --> %d \n", id,  n_atual, processados);
         if(self->tempo > tempo)
             continue; /*continue*/
         fprintf(stderr, "processados --> %d \n", processados);
@@ -85,10 +86,38 @@ void * Thread(void * a){
         aux = -1;
         while(aux != 0)
         {
+            fprintf(stderr, "ANTES %d %d %d\n", id, self->faixa, (self->posicao+1)%d);
             fprintf(stderr, "outro loop aux2: %d faixa: %d \n", aux2, self->faixa);
-            //pthread_mutex_lock(&mutex_pista); //P(protege_pista) 
+            pthread_mutex_lock(&mutex_pista); //P(protege_pista) 
 
+            pthread_mutex_lock(&mutex[self->faixa][(self->posicao+1)%d]);
+            aux = pista[self->faixa][(self->posicao+1)%d];
+            i = self->faixa + 1;
+            fprintf(stderr, "aux: %d\n", aux);
+            if(self->faixa > 0 && aux && parametros[aux].tempo == tempo && parametros[aux].velocidade >= self->velocidade)
+            {
+                pthread_mutex_lock(&mutex[self->faixa-1][(self->posicao+1)%d]);
+                aux = pista[self->faixa - 1][(self->posicao+1)%d];
+
+                if(aux == 0)
+                {   
+                    i = self->faixa;
+                    pista[self->faixa - 1][(self->posicao+1)%d] = id;
+
+                    pthread_mutex_lock(&mutex[self->faixa][self->posicao]); 
+
+                    pista[self->faixa][self->posicao] = 0;
+                    pthread_mutex_unlock(&mutex[self->faixa][self->posicao]);
+                }
+                pthread_mutex_unlock(&mutex[self->faixa-1][(self->posicao+1)%d]);
+            }
+            else
+                aux = -1;
+            
+            pthread_mutex_unlock(&mutex[self->faixa][(self->posicao+1)%d]);
+            /*fprintf(stderr, "DEPOIS %d %d %d\n", id, self->faixa, self->posicao);*/
             aux2 = 0;
+            if(aux != 0){
             for(i = self->faixa; i < 10 && aux != 0; i++)
             {   
                 pthread_mutex_lock(&mutex[i][(self->posicao+1)%d]);
@@ -96,20 +125,24 @@ void * Thread(void * a){
 
                 if(aux == 0)
                 {
-                    pista[i][(self->posicao+1)%d] = id; 
+                    pthread_mutex_lock(&mutex[self->faixa][self->posicao]); 
+                    pista[i][(self->posicao+1)%d] = id;
+                    
                     pista[self->faixa][self->posicao] = 0;
+                    pthread_mutex_unlock(&mutex[self->faixa][self->posicao]);
                 }
                 else if(parametros[aux].tempo > tempo)
                     aux2++;
                 pthread_mutex_unlock(&mutex[i][(self->posicao+1)%d]);
-            }
+            }}
             i--;
          
             if(aux2 == 10 - self->faixa)
                 aux = 0;
-            //pthread_mutex_unlock(&mutex_pista); //V(protege_pista)
+            pthread_mutex_unlock(&mutex_pista); //V(protege_pista)
 
         }
+            fprintf(stderr, "PASSOU DAQUI %d\n", id);
 
         /* caso 3: se ele não pode ultrapassar/avançar */
         if(aux2 == 10 - self->faixa)
@@ -166,6 +199,7 @@ void * Thread(void * a){
         //pthread_mutex_unlock(&mutex_pista);
 
         processados += 1;
+      //  n_atual -= 1;
         self->tempo += intervalo;
         //pthread_barrier_wait(&barreira);
         /*if(self->volta == 6)
@@ -251,7 +285,7 @@ int main(int argc, char* argv[]){
         }
     }
 
-    //fprintf(stderr, "eita\n");
+    fprintf(stderr, "eita\n");
     
 
     fprintf(debug, "%d\n", tempo);
@@ -277,9 +311,13 @@ int main(int argc, char* argv[]){
             for(i = 0; i < d; i++)
                 fprintf(debug, "%d ", pista[j][i]);
         fprintf(debug, "\n");
+        fclose(debug);
+        debug = fopen("corrida.dat", "a");
 
-        tempo += intervalo; /* unidade de tempo = 20ms*/
+
+
         processados = 0;
+        tempo += intervalo; /* unidade de tempo = 20ms*/
         fprintf(stderr, "tempo: %d\n", tempo);
     }
 
