@@ -6,7 +6,7 @@
 #include <time.h>
 #include <string.h>
 
-#define MAXN 100000  /* tamanho maximo de d*/
+#define MAXN 100005  /* tamanho maximo de d*/
 
 /* parametros de cada */
 typedef struct 
@@ -30,7 +30,7 @@ _Atomic int terminados;
 _Atomic int n_atual;
 _Atomic int volta[MAXN]; // volta[i] representa quantos ciclistas já realizaram a volta i até o momento
 int prox_volta;
-pthread_mutex_t mutex_pista;
+pthread_mutex_t mutex_n;
 pthread_mutex_t mutex_volta[MAXN];
 pthread_mutex_t mutex[15][MAXN];
 pthread_barrier_t barreira;
@@ -43,6 +43,7 @@ void * Thread(void * a){
     int i, j, aux, aux2;
     int* arg = a;
     int id = (*arg);
+    int ok = 1;
     Parametros *self;
     self = parametros + id;
     free(arg);
@@ -88,7 +89,6 @@ void * Thread(void * a){
         {
             fprintf(stderr, "ANTES %d %d %d\n", id, self->faixa, (self->posicao+1)%d);
             fprintf(stderr, "outro loop aux2: %d faixa: %d \n", aux2, self->faixa);
-            pthread_mutex_lock(&mutex_pista); //P(protege_pista) 
 
             pthread_mutex_lock(&mutex[self->faixa][(self->posicao+1)%d]);
             aux = pista[self->faixa][(self->posicao+1)%d];
@@ -139,8 +139,6 @@ void * Thread(void * a){
          
             if(aux2 == 10 - self->faixa)
                 aux = 0;
-            pthread_mutex_unlock(&mutex_pista); //V(protege_pista)
-
         }
             fprintf(stderr, "PASSOU DAQUI %d\n", id);
 
@@ -150,13 +148,13 @@ void * Thread(void * a){
             self->tempo += intervalo;
             self->trecho = 100;
             //self->velocidade = 30;
-            self->tempo += intervalo;
             processados += 1;
             //pthread_barrier_wait(&barreira);
             fprintf(stderr, "------------DEU RUIM------------ aux2: %d faixa: %d\n", aux2, self->faixa);
             continue;
         }
         fprintf(stderr, "id: %d posicao: %d volta: %d\n", id, self->posicao, self->volta);
+        self->faixa = i;
 
         /* se e está no último metro da pista */
         if(self->posicao == d-1)
@@ -167,25 +165,41 @@ void * Thread(void * a){
                 self->velocidade = 30 + 30*((int) (rand()%10 >= 4));
             //self->velocidade = 30 + 30*(id%2);//30km/h ou 60km/h
             self->volta++;
-
-            //P()
+            ok = 1;
+            /* checa se foi eliminado */
             pthread_mutex_lock(&mutex_volta[self->volta]);
             if(++volta[self->volta] == n_atual && self->volta % 2 == 0 && self->volta >= 2)
             {
+              ok = 0;
               fprintf(stderr, "------------Eliminado------------\n");
-              fprintf(stderr, "----Posição: %d Ciclista: %d ----\n", n_atual, id);  
+              fprintf(stderr, "----Posição: %d Ciclista: %d ----\n", n_atual, id);
+              pthread_mutex_lock(&mutex[self->faixa][0]);
+              pista[self->faixa][0] = 0;
+              pthread_mutex_unlock(&mutex[self->faixa][0]);
               processados += 1;
+              n_atual -= 1;
+              pthread_mutex_unlock(&mutex_volta[self->volta]);
               break;
             }
             pthread_mutex_unlock(&mutex_volta[self->volta]);
-            
-              //fprintf(stderr, "======> volta[i] = %d\n", volta[self->volta]);
-            //V()
 
-            //fprintf(stderr, "------------VOLTA TERMINADA------------\n");
+            /* checa se quebrou */
+            pthread_mutex_lock(&mutex_n);
+            if(self->volta%6==0 && n_atual > 5 && ok && (rand()%100 >= 10)){
+              ok = 0;
+              fprintf(stderr, "------------Quebrou------------\n");
+              fprintf(stderr, "----Posição: %d Ciclista: %d ----\n", n_atual, id);
+              pthread_mutex_lock(&mutex[self->faixa][0]);
+              pista[self->faixa][0] = 0;
+              processados+=1;
+              n_atual -= 1;
+              //break;
+            }
+            pthread_mutex_unlock(&mutex_n);
+
+            if(!ok) break;
         }
 
-        //pthread_mutex_lock(&mutex_pista);
         pthread_mutex_lock(&mutex[self->faixa][self->posicao]);
         pista[self->faixa][self->posicao] = 0;
         pthread_mutex_unlock(&mutex[self->faixa][self->posicao]);
@@ -195,8 +209,6 @@ void * Thread(void * a){
         pthread_mutex_lock(&mutex[i][self->posicao]);
         pista[i][self->posicao] = id;
         pthread_mutex_unlock(&mutex[i][self->posicao]);
-        self->faixa = i;
-        //pthread_mutex_unlock(&mutex_pista);
 
         processados += 1;
       //  n_atual -= 1;
@@ -215,7 +227,8 @@ void * Thread(void * a){
     pista[self->faixa][self->posicao] = 0;
     pthread_mutex_unlock(&mutex[self->faixa][self->posicao]);
     terminados += 1;
-    n_atual -= 1;
+    /*n_atual -= 1;*/
+
     fprintf(stderr, "terminados agora: %d \n", terminados);
     
     return NULL;
@@ -258,7 +271,7 @@ int main(int argc, char* argv[]){
     terminados = 0;
     processados = 0;
     pthread_barrier_init(&barreira, NULL, n);
-    pthread_mutex_init(&mutex_pista, NULL);
+    pthread_mutex_init(&mutex_n, NULL);
     srand(8080);
 
     for(i = 0; i < 10;i++){
@@ -314,24 +327,21 @@ int main(int argc, char* argv[]){
         fclose(debug);
         debug = fopen("corrida.dat", "a");
 
-
-
         processados = 0;
         tempo += intervalo; /* unidade de tempo = 20ms*/
         fprintf(stderr, "tempo: %d\n", tempo);
     }
-
     fprintf(stderr, "PASSOU\n");
     fclose(debug);
 
     /* ------------- finalizações das estruturas usadas ---------------- */
-    for(aux = 0; aux < n; aux++){
+    for(aux = 1; aux <= n; aux++){
         if(pthread_join(ciclista[aux], NULL)){
                 printf("ERRO ao dar join na Thread\n");
                 exit(1);
         }
     }
-    pthread_mutex_destroy(&mutex_pista);
+    pthread_mutex_destroy(&mutex_n);
     pthread_barrier_destroy(&barreira);
     for(i = 0; i < 10;i++){
         for(j = 0; j < d; j++){
