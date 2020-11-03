@@ -431,34 +431,9 @@ int main(int argc, char* argv[]){
 
     }
     //fclose(debug);
+    fprintf(stderr, "penultima volta: %d \n", penultima_volta);
 
-    /*-------------- teste para a saida pedida no enunciado -------------*/
-    /*i = j = 1;
-    while(colocacao[i][0] != 0){
-        j = 0;
-        fprintf(stderr, "volta: %d\n", i);
-        while(colocacao[i][j] != 0){
-            fprintf(stderr, "%dº colocado: %d\n", j+1, colocacao[i][j]);
-            j++;
-        }
-        fprintf(stderr, "\n"); 
-        i++;
-    }*/
-    fprintf(stderr, "penultima volta: %d\n", penultima_volta);
-
-    /*-------------- teste para a saida pedida no enunciado -------------*/
-    i = j = 1;
-    while(colocacao[i][0] != 0){
-        j = 0;
-        fprintf(stderr, "volta: %d\n", i);
-        while(colocacao[i][j] != 0){
-            fprintf(stderr, "%dº colocado: %d\n", j+1, colocacao[i][j]);
-            j++;
-        }
-        fprintf(stderr, "\n"); 
-        i++;
-    }
-    fprintf(stderr, "penultima volta: %d\n", penultima_volta);
+    
     /* ------------- finalizações das estruturas usadas ---------------- */
     for(aux = 1; aux <= n; aux++){
         if(pthread_join(ciclista[aux], NULL)){
