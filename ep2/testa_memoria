@@ -1,9 +1,19 @@
 #!/bin/bash
 
-for file in trace100; do
+ciclista=( 10 100)
+pista=( 250 500 1000)
+
+for j in "${pista[@]}"; do
 for i in $(seq 1 30); do
-./ep2 1 "$file" "saida_fcfs_""$file""_""$i"
-./ep1 2 "$file" "saida_srtn_""$file""_""$i"
-./ep1 3 "$file" "saida_rr_""$file""_""$i"
+echo $j $i >>memo_pista.txt
+./ep2 $j 100 & (pmap $(pidof ep2) | grep total >> memo_pista.txt)
+done
+done
+
+for j in "${ciclista[@]}"; do
+for i in $(seq 1 30); do
+echo $j $i >>memo_ciclistas.txt
+./ep2 $j 100
+pmap $(pidof ep2) | grep total >> memo_pista.txt
 done
 done

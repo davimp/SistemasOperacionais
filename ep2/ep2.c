@@ -155,7 +155,7 @@ void * Thread(void * a){
             continua_main();
             continue;
         }
-
+        /* caso 4: avança */
         self->faixa = i;
 
         /* se e está no último metro da pista, ou seja, mudara de volta */
@@ -299,7 +299,7 @@ void inicia_thread(int id){
     }
 }
 
-void debuga(){
+/*void debuga(){
     int i, j;
     fprintf(debug, "%d\n", tempo);
     for(j = 0; j < 10; j++)
@@ -308,11 +308,40 @@ void debuga(){
     fprintf(debug, "\n");
     fclose(debug);
     debug = fopen("corrida.dat", "a");
-}
+}*/
 
+void debuga()
+{
+    int i, j;
+    fprintf(stderr, "tempo: %d\n", tempo);
+
+    fprintf(stderr, " ");
+    for(i = 0; i < d; i++)
+        fprintf(stderr, "_____");
+    puts("");
+
+    for(j = 0; j < 10; j++)
+    {
+        fprintf(stderr, "|");
+        for(i = 0; i < d; i++)
+        {
+            if(a != 0)
+                fprintf(stderr, "\033[0;31m%4d\033[0m|", pista[j][i]);
+            else
+                fprintf(stderr, "   0|");
+        }
+        fprintf(stderr, "\n");
+    }
+
+    fprintf(stderr, " ");
+    for(i = 0; i < d; i++)
+        fprintf(stderr, "_____");
+    fputs(stderr, "");
+}
 int main(int argc, char* argv[]){
     int i, j, k, contador;
     int faixa, metro, aux, aux2;
+    int modo_debug = 0;
     d = atoi(argv[1]);
     n = atoi(argv[2]);
     
@@ -370,7 +399,8 @@ int main(int argc, char* argv[]){
         }
     }
 
-    /*debuga();*/
+    if(modo_debug)
+        debuga();
     while(terminados < n)
     {
         /*processa todo mundo*/
@@ -382,8 +412,9 @@ int main(int argc, char* argv[]){
         }
         processados = 0;
         pthread_mutex_unlock(&lock_main);
-       
-        /*debuga();*/
+
+        if(modo_debug)
+            debuga();
 
         /* imprime a saída de debug */
         if(imprime){
@@ -427,8 +458,6 @@ int main(int argc, char* argv[]){
             pthread_cond_broadcast(&cond);
             pthread_mutex_unlock(&lock);
         } 
-
-
     }
     //fclose(debug);
     fprintf(stdout, "penultima volta: %d \n", penultima_volta);

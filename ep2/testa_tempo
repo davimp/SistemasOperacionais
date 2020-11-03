@@ -1,10 +1,18 @@
 #!/bin/bash
 
-limites=( 10 100)
+ciclista=( 10 100)
+pista=( 250 500 1000)
 
-for j in "${limites[@]}"; do
+for j in "${pista[@]}"; do
 for i in $(seq 1 30); do
-echo $j $i >>time.txt
-{ time ./ep2 1000 $j ; } 2>> time.txt
+echo $j $i >>time_pista.txt
+{ /usr/bin/time -p ./ep2 $j 100 ; } 2>> time_pista.txt
+done
+done
+
+for j in "${ciclista[@]}"; do
+for i in $(seq 1 30); do
+echo $j $i >>time_ciclistas.txt
+{ /usr/bin/time -p ./ep2 500 $j ; } 2>> time_ciclistas.txt
 done
 done
