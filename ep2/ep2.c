@@ -81,6 +81,7 @@ void * Thread(void * a){
 
         self->trecho += self->velocidade * intervalo / 12;
 
+        //fprintf(stderr, "------> trecho: %d\n", self->trecho);
         /* caso 2: se ainda não avançou o suficiente para trocar de posição */
         if(self->trecho < 300)
         {
@@ -96,7 +97,6 @@ void * Thread(void * a){
         aux = -1;
         while(aux != 0)
         {
-
             pthread_mutex_lock(&mutex[self->faixa][(self->posicao+1)%d]);
             aux = pista[self->faixa][(self->posicao+1)%d];
             i = self->faixa + 1;
@@ -155,6 +155,7 @@ void * Thread(void * a){
             continua_main();
             continue;
         }
+
         self->faixa = i;
 
         /* se e está no último metro da pista, ou seja, mudara de volta */
@@ -167,7 +168,6 @@ void * Thread(void * a){
             else if(self->velocidade == 60)
                 self->velocidade = 30 + 30*((int) (rand()%10 >= 4));
 
-
             pthread_mutex_lock(&mutex_n);
             if(self->volta < 3*n + 9)
             {
@@ -178,12 +178,14 @@ void * Thread(void * a){
                 pthread_mutex_unlock(&mutex_volta[self->volta]);
             }
             imprime = 1;
+
             /* checa se foi eliminado */
             ok = 1;
             aux3 = 0;
             pthread_mutex_lock(&mutex_volta[self->volta]);
             /* se ja passou da volta em que havera a proxima eliminação
             fazemos um preprocessamento  para saber se ele foi o ultimo */
+
             if(self->volta >= prox_volta)
             {
                 aux3 = 0;
@@ -267,6 +269,7 @@ void * Thread(void * a){
 
         processados += 1;
         continua_main();
+
         self->tempo += intervalo;
     }
 
@@ -443,7 +446,19 @@ int main(int argc, char* argv[]){
     }*/
     fprintf(stderr, "penultima volta: %d\n", penultima_volta);
 
-
+    /*-------------- teste para a saida pedida no enunciado -------------*/
+    i = j = 1;
+    while(colocacao[i][0] != 0){
+        j = 0;
+        fprintf(stderr, "volta: %d\n", i);
+        while(colocacao[i][j] != 0){
+            fprintf(stderr, "%dº colocado: %d\n", j+1, colocacao[i][j]);
+            j++;
+        }
+        fprintf(stderr, "\n"); 
+        i++;
+    }
+    fprintf(stderr, "penultima volta: %d\n", penultima_volta);
     /* ------------- finalizações das estruturas usadas ---------------- */
     for(aux = 1; aux <= n; aux++){
         if(pthread_join(ciclista[aux], NULL)){
@@ -456,6 +471,7 @@ int main(int argc, char* argv[]){
     pthread_mutex_destroy(&lock_main);
     pthread_cond_destroy(&cond);
     pthread_cond_destroy(&cond_main);
+
     for(i = 0; i < 10;i++){
         for(j = 0; j < d; j++){
             pthread_mutex_destroy(&mutex[i][j]);
