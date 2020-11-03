@@ -1,0 +1,173 @@
+---------volta: 1----------
+1º colocado: ciclista 10
+2º colocado: ciclista 9
+3º colocado: ciclista 7
+4º colocado: ciclista 6
+5º colocado: ciclista 8
+6º colocado: ciclista 5
+7º colocado: ciclista 3
+8º colocado: ciclista 1
+9º colocado: ciclista 2
+10º colocado: ciclista 4
+----------------------------
+------------Eliminado------------
+----Posição: 10 Ciclista: 5 ----
+id: 5
+ terminou no tempo 179940
+---------volta: 2----------
+1º colocado: ciclista 9
+2º colocado: ciclista 10
+3º colocado: ciclista 6
+4º colocado: ciclista 8
+5º colocado: ciclista 7
+6º colocado: ciclista 1
+7º colocado: ciclista 2
+8º colocado: ciclista 4
+9º colocado: ciclista 3
+10º colocado: ciclista 5
+----------------------------
+---------volta: 3----------
+1º colocado: ciclista 9
+2º colocado: ciclista 7
+3º colocado: ciclista 6
+4º colocado: ciclista 4
+5º colocado: ciclista 10
+6º colocado: ciclista 8
+7º colocado: ciclista 3
+8º colocado: ciclista 2
+9º colocado: ciclista 1
+----------------------------
+------------Eliminado------------
+----Posição: 9 Ciclista: 1 ----
+id: 1
+ terminou no tempo 419940
+---------volta: 4----------
+1º colocado: ciclista 6
+2º colocado: ciclista 9
+3º colocado: ciclista 8
+4º colocado: ciclista 10
+5º colocado: ciclista 7
+6º colocado: ciclista 4
+7º colocado: ciclista 2
+8º colocado: ciclista 3
+9º colocado: ciclista 1
+----------------------------
+---------volta: 5----------
+1º colocado: ciclista 9
+2º colocado: ciclista 7
+3º colocado: ciclista 6
+4º colocado: ciclista 4
+5º colocado: ciclista 10
+6º colocado: ciclista 8
+7º colocado: ciclista 2
+8º colocado: ciclista 3
+----------------------------
+------------Quebrou------------
+----Posição: 8 Ciclista: 10 Tempo: 539820 ----
+id: 10
+ terminou no tempo 539820
+------------Eliminado------------
+----Posição: 7 Ciclista: 8 ----
+id: 8
+ terminou no tempo 599820
+---------volta: 6----------
+1º colocado: ciclista 6
+2º colocado: ciclista 7
+3º colocado: ciclista 9
+4º colocado: ciclista 4
+5º colocado: ciclista 10
+6º colocado: ciclista 3
+7º colocado: ciclista 2
+8º colocado: ciclista 8
+----------------------------
+---------volta: 7----------
+1º colocado: ciclista 7
+2º colocado: ciclista 6
+3º colocado: ciclista 9
+4º colocado: ciclista 4
+5º colocado: ciclista 2
+6º colocado: ciclista 3
+----------------------------
+------------Eliminado------------
+----Posição: 6 Ciclista: 3 ----
+id: 3
+ terminou no tempo 719940
+---------volta: 8----------
+1º colocado: ciclista 6
+2º colocado: ciclista 7
+3º colocado: ciclista 9
+4º colocado: ciclista 4
+5º colocado: ciclista 2
+6º colocado: ciclista 3
+----------------------------
+---------volta: 9----------
+1º colocado: ciclista 9
+2º colocado: ciclista 7
+3º colocado: ciclista 6
+4º colocado: ciclista 4
+5º colocado: ciclista 2
+----------------------------
+------------Eliminado------------
+----Posição: 5 Ciclista: 2 ----
+id: 2
+ terminou no tempo 899940
+---------volta: 10----------
+1º colocado: ciclista 9
+2º colocado: ciclista 6
+3º colocado: ciclista 4
+4º colocado: ciclista 7
+5º colocado: ciclista 2
+----------------------------
+---------volta: 11----------
+1º colocado: ciclista 6
+2º colocado: ciclista 9
+3º colocado: ciclista 4
+4º colocado: ciclista 7
+----------------------------
+------------Eliminado------------
+----Posição: 4 Ciclista: 4 ----
+id: 4
+ terminou no tempo 959940
+---------volta: 12----------
+1º colocado: ciclista 9
+2º colocado: ciclista 6
+3º colocado: ciclista 7
+4º colocado: ciclista 4
+----------------------------
+---------volta: 13----------
+1º colocado: ciclista 9
+2º colocado: ciclista 7
+3º colocado: ciclista 6
+----------------------------
+------------Eliminado------------
+----Posição: 3 Ciclista: 7 ----
+id: 7
+ terminou no tempo 1139820
+---------volta: 14----------
+1º colocado: ciclista 6
+2º colocado: ciclista 9
+3º colocado: ciclista 7
+----------------------------
+---------volta: 15----------
+1º colocado: ciclista 9
+2º colocado: ciclista 6
+----------------------------
+------------Eliminado------------
+----Posição: 2 Ciclista: 6 ----
+id: 6
+ terminou no tempo 1199820
+---------volta: 16----------
+1º colocado: ciclista 9
+2º colocado: ciclista 6
+----------------------------
+---------volta: 17----------
+1º colocado: ciclista 9
+----------------------------
+------------Eliminado------------
+----Posição: 1 Ciclista: 9 ----
+id: 9
+ terminou no tempo 1379820
+---------volta: 18----------
+1º colocado: ciclista 9
+----------------------------
+penultima volta: 15

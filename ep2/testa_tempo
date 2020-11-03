@@ -1,0 +1,9 @@
+#!/bin/bash
+
+limites=( 10 100 1000)
+
+for j in "${limites[@]}"; do
+for i in $(seq 1 30); do
+echo (time ./ep2 1000 $j) >"saida_""tempo""_""$i"
+done
+done

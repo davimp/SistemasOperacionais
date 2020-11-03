@@ -40,7 +40,7 @@ int main()
         for(i = 0; i < d; i++)
             printf("_____");
         puts("");
-        //usleep(650000);
+        usleep(500000);
         //system("clear");
     }
 
