@@ -14,14 +14,14 @@ int main(){
     double tempo ,desvio;
     FILE *f, *p;
     char *arq[] = {
-        "time_pista.txt",
-        "time_ciclistas.txt",
+        "time_pista_antes.txt",
+        "time_ciclistas_antes.txt",
         "memo_pista.txt",
         "memo_ciclistas.txt",
     };
 
 
-for(k = 0; k < 4; k++)
+for(k = 2; k < 4; k++)
 {
     
     f = fopen(arq[k], "r");
@@ -69,7 +69,7 @@ for(k = 0; k < 4; k++)
 
             printf("   %s: %d ", k % 2 ?"nº de ciclistas":"tamanho da pista", tam);
             printf("média: %.2f   erro: %.2f\n", tempo, desvio);
-        }  
+        } 
     }
 
     fclose(f);
