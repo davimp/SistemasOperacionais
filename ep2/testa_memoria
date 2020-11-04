@@ -3,17 +3,17 @@
 ciclista=( 10 100)
 pista=( 250 500 1000)
 
+
 for j in "${pista[@]}"; do
 for i in $(seq 1 30); do
 echo $j $i >>memo_pista.txt
-./ep2 $j 100 & (pmap $(pidof ep2) | grep total >> memo_pista.txt)
+./ep2 $j 100 & (pmap $(pidof -s ep2) | grep total >> memo_pista.txt)
 done
 done
 
 for j in "${ciclista[@]}"; do
 for i in $(seq 1 30); do
 echo $j $i >>memo_ciclistas.txt
-./ep2 $j 100
-pmap $(pidof ep2) | grep total >> memo_pista.txt
+./ep2 500 $j & (pmap $(pidof -s ep2) | grep total >> memo_ciclistas.txt)
 done
 done

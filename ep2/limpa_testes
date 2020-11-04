@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rm memo_pista.txt time_pista.txt time_ciclista.txt time_ciclista.txt
