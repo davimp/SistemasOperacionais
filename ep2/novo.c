@@ -474,8 +474,15 @@ int main(int argc, char* argv[]){
             pthread_mutex_unlock(&lock);
         } 
     }
-
     imprime_volta();
+
+    /*imprimme última volta*/
+    i = 0;
+    fprintf(stdout, "---------volta: %d----------\n", penultima_volta+1);
+    while(colocacao[penultima_volta+1][i] != 0){
+        fprintf(stdout, "%dº colocado: ciclista %d\n", i+1, colocacao[penultima_volta+1][i]);
+        i++;
+    }
     
 
     /*----------------imprime as colocações finais-----------------------*/
