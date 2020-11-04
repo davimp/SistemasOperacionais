@@ -325,7 +325,7 @@ void debuga()
         fprintf(stderr, "|");
         for(i = 0; i < d; i++)
         {
-            if(a != 0)
+            if(pista[j][i] != 0)
                 fprintf(stderr, "\033[0;31m%4d\033[0m|", pista[j][i]);
             else
                 fprintf(stderr, "   0|");
@@ -336,7 +336,7 @@ void debuga()
     fprintf(stderr, " ");
     for(i = 0; i < d; i++)
         fprintf(stderr, "_____");
-    fputs(stderr, "");
+    fprintf(stderr, "\n");
 }
 int main(int argc, char* argv[]){
     int i, j, k, contador;
