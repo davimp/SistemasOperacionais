@@ -1,0 +1,35 @@
+LEIAME
+
+Universidade de São Paulo
+Instituto de Matemática e Estatística
+Bacharelado em Ciência da Computação
+MAC0422 - Sistemas Operacionais(2020)
+Exercício Programa 2
+
+ALUNOS:
+Davi de Menezes Pereira (11221988);
+Luciano Rodrigues Saraiva Leão (11221817).
+
+1:Compilação
+
+    Para compilar o ep2, basta digitar 'make' ou 'make ep2'
+
+2:Execução
+
+    Para executar deve-se digitar 
+
+    './ep2 <comprimento da pista> <número de ciclistas> <parametro opcional para debug>'
+    
+    Onde:
+        <comprimento da pista> é o tamanho da pista, 'd' citado no enunciado
+        <número de ciclistas> é o 'n' citado no enunciado
+        <parametro opcional para debug> é um parâmetro opcional, que, caso
+        seja enviado um 'p' no seu lugar, o programa imprimirá
+        o estado da pista em cada instante de tempo (60 em 60 ou de 20 em 20
+         milisegundos, dependendo da velocidade dos ciclistas). Ou seja, a opção
+         de debug citada no enunciado.
+
+3:Limpar
+
+    Digite 'make clean' para excluir os executáveis.
+        

@@ -488,7 +488,7 @@ int main(int argc, char* argv[]){
     /*----------------imprime as colocações finais-----------------------*/
 
     fprintf(stdout, "\n-----------Classificação final----------\n");
-    for(i = num_finalizados-1; i >= 0; i--){
+    for(i = 0; i < num_finalizados; i++){
         aux = finalizaram[i];
         fprintf(stdout, "%dº colocado: ciclista %d (tempo em pista: %dms)\n", num_finalizados-i, aux, parametros[aux].tempo);
     }

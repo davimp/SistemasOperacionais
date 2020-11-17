@@ -1,18 +1,18 @@
 #!/bin/bash
 
 ciclista=( 10 100)
-pista=( 250 500 1000)
+pista=( 250 500)
 
 for j in "${pista[@]}"; do
-for i in $(seq 1 30); do
+for i in $(seq 1 100); do
 echo $j $i >>time_pista.txt
 { /usr/bin/time -p ./ep2 $j 100 ; } 2>> time_pista.txt
 done
 done
 
-for j in "${ciclista[@]}"; do
-for i in $(seq 1 30); do
-echo $j $i >>time_ciclistas.txt
-{ /usr/bin/time -p ./ep2 500 $j ; } 2>> time_ciclistas.txt
-done
-done
+#for j in "${ciclista[@]}"; do
+#for i in $(seq 1 30); do
+#echo $j $i >>time_ciclistas.txt
+# { /usr/bin/time -p ./ep2 500 $j ; } 2>> time_ciclistas.txt
+#done
+#done
