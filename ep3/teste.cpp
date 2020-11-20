@@ -15,14 +15,15 @@ int main(int argc, char *argv[]){
     string linha_lida, comando, argumentos[10];
     ofstream arq;
 
-    /*shell*/
+    //Shell
     while(1)
     {
         cout << "[ep3]: ";
+        /*getline(cin, linha_lida);*/
+        /*comando = linha_lida.substr(0,linha_lida.find(" "));*/
         cin >> comando;
 
         if(comando == "mount"){
-            /* parser */
             /* arquivo */
             cin >> argumentos[0];
             cout << "monte " << argumentos[0] << endl;
@@ -58,10 +59,8 @@ int main(int argc, char *argv[]){
         else if(comando == "df"){
         }
         else if(comando == "unmount"){
-            /*writer*/
         }
         else if(comando == "sai"){
-            break;
         }
         else{
             cout << "comando inválido!\n";
