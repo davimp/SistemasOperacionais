@@ -12,13 +12,13 @@ Luciano Rodrigues Saraiva Leão (11221817).
 
 1:Compilação
 
-    Para compilar o ep2, basta digitar 'make' ou 'make ep2'
+    Para compilar o ep2, basta digitar 'make' ou 'make ep3'
 
 2:Execução
 
     Para executar deve-se digitar 
 
-    './ep2 <comprimento da pista> <número de ciclistas> <parametro opcional para debug>'
+    './ep3 <comprimento da pista> <número de ciclistas> <parametro opcional para debug>'
     
     Onde:
         <comprimento da pista> é o tamanho da pista, 'd' citado no enunciado

@@ -9,17 +9,17 @@ binarios: bccsh ep1 gera_teste
 bccsh: $(OBJS_BCCSH)
 	$(CC)  $(OBJS_BCCSH) -o bccsh -lreadline -pthread
 
-bccsh.o: bccsh.c 
+bccsh.o: bccsh.c
 	$(CC)  $(CCFLAGS) -c bccsh.c -lreadline -pthread
 
-ep1: $(OBJS_SIM) 
+ep1: $(OBJS_SIM)
 	$(CC) $(OBJS_SIM) -o ep1 -pthread  
 
 ep1.o: ep1.c fcfs.h srtn.h rr.h
-	$(CC) $(CCFLAGS) -c ep1.c -pthread  
+	$(CC) $(CCFLAGS) -c ep1.c -pthread
 
 fcfs.o: fcfs.c fcfs.h
-	$(CC) $(CCFLAGS) -c fcfs.c -pthread  
+	$(CC) $(CCFLAGS) -c fcfs.c -pthread
 
 srtn.o: srtn.c srtn.h
 	$(CC) $(CCFLAGS) -c srtn.c -pthread
