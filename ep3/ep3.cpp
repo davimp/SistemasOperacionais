@@ -60,15 +60,14 @@ void imprime_arquivos(int id){
     }
 }
 
-void find(int id, string nome, string caminho){
-
-    caminho += diretorios[id].nome + "/";
+void find(int id, string nome){
 
     for(int it : diretorios[id].arquivos){
-        if(arquivos[it].nome == nome) cout << caminho << arquivos[it].nome << endl;
+        if(arquivos[it].nome == nome) cout << diretorios[id].nome << "/" << arquivos[it].nome << endl;
     }
+
     for(int it : grafo[id]){
-        find(it, nome, caminho);
+        find(it, nome);
     }
 }
 
@@ -77,8 +76,8 @@ void rm(string n){
     int i,j,k;
 
     /* pegas os ids */
-    aux = n.substr(0, n.find_last_of("/"));
     i = a[n];
+    aux = n.substr(0, n.find_last_of("/"));
     a[n] = 0;
     j = d[aux];
 
@@ -113,12 +112,18 @@ void rm(string n){
     arquivos[i].acessado = -1;
 }
 
-void rmdir(int id){
-    string aux, n;
-    int i,j,k;
+void rmdir(string n){
+    string aux;
+    int i,j,k, id;
 
+    id = d[n];
+    d[n] = 0;
+    aux = n.substr(0, n.find_last_of("/"));
+    j = d[aux];
+
+    /* apaga os diretorios filhos */
     for(int it : grafo[id]){
-        rmdir(it);
+        rmdir(diretorios[it].nome);
     }
 
     /* apaga diretório no grafo */
@@ -150,6 +155,7 @@ int main(int argc, char *argv[]){
     int i,j,k, next_id, blocos, cont;
     string nome_arq, s, content, aux;
     string linha_lida, comando, argumentos[10];
+    char saux[10];
     fstream arq, original;
     streampos pos;
     num_diretorios = num_arquivos = 0;
@@ -201,6 +207,7 @@ int main(int argc, char *argv[]){
             /* parser */
             /* arquivo */
             cin >> argumentos[0];
+            nome_arq = argumentos[0];
             cout << "monte " << argumentos[0] << endl;
             arq.open(argumentos[0], fstream::out | fstream::in | fstream::app);
 
@@ -212,6 +219,7 @@ int main(int argc, char *argv[]){
                 for(i = 0; i < (32 + 7)*BLOCO; i++)
                     arq << '0';
             }
+            arq.close();
         }
         else if(comando == "cp"){
             /*origem destino*/
@@ -313,8 +321,7 @@ int main(int argc, char *argv[]){
         else if(comando == "rmdir"){
             /*diretorio*/
             cin >> argumentos[0];
-            i = d[argumentos[0]];
-            rmdir(i);
+            rmdir(argumentos[0]);
         }
         else if(comando == "cat"){
             /* arquivo */
@@ -327,17 +334,25 @@ int main(int argc, char *argv[]){
             cin >> argumentos[0];
             if(a.count(argumentos[0]) == 0)
             {
-                //Cria arquivo num_arquivos
+                /* acha o qual será o id do arquivo */
+                for(i = 0; i < MAXN; i++){
+                    if(arquivos[i].nome == "") break;
+                }
+                next_id = i;
+
+                /* cria arquivo em next_id */
                 aux = argumentos[0].substr(0, argumentos[0].find_last_of("/"));
                 j = d[aux];
 
-                arquivos[num_arquivos].nome = argumentos[0].substr(argumentos[0].find_last_of("/")+1, argumentos[0].length());
-                arquivos[num_arquivos].conteudo = "";
-                arquivos[num_arquivos].tamanho = 1;
-                arquivos[num_arquivos].diretorio = aux;
-                k = num_arquivos++;
-                diretorios[j].arquivos.push_back(k);
-                arquivos[k].criado = time(NULL);
+                arquivos[next_id].nome = argumentos[0].substr(argumentos[0].find_last_of("/")+1, argumentos[0].length());
+                arquivos[next_id].conteudo = "";
+                arquivos[next_id].tamanho = 1;
+                arquivos[next_id].diretorio = aux;
+                a[argumentos[0]] = next_id;
+                diretorios[j].arquivos.push_back(next_id);
+                num_arquivos++;
+                arquivos[next_id].criado = time(NULL);
+                k = next_id;
             }
             else
                 k = a[argumentos[0]];
@@ -347,6 +362,7 @@ int main(int argc, char *argv[]){
         else if(comando == "rm"){
             /* arquivo */
             cin >> argumentos[0];
+            cout << "apagando arquivo " << argumentos[0] << endl;
             rm(argumentos[0]);
         }
         else if(comando == "ls"){
@@ -356,9 +372,10 @@ int main(int argc, char *argv[]){
             imprime_arquivos(j);
         }
         else if(comando == "find"){
-            /*diretorio arquivo*/
+            /* diretorio arquivo */
             cin >> argumentos[0] >> argumentos[1];
-
+            j = d[argumentos[0]];
+            find(j, argumentos[1]);
         }
         else if(comando == "df"){
             /*quantidade de diretórios,
@@ -370,8 +387,25 @@ int main(int argc, char *argv[]){
             cout << "quantidade de desperdiçado: " << 0 <<  endl;
         }
         else if(comando == "umount"){
-            arq.close();
+
+            remove(nome_arq.data());
+            arq.open(nome_arq, fstream::out | fstream::in | fstream::app);
             /*writer*/
+            //Bitmap
+            // arq >> s;
+            // for(i = 0; i < s.length(); i++)
+            //     bitmap[i] = (s[i] == '1');
+            for(i = 0; i < 25000; i++)
+                arq << bitmap[i];
+            
+            //FAT
+            for(i = 0; i < 25000; i++)
+            {
+                sprintf(saux, "%04d\n", FAT[i]);
+                arq << string(saux);
+
+            }
+            arq.close();
         }
         else if(comando == "sai"){
             break;
