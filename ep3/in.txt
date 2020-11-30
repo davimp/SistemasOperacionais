@@ -1,5 +1,7 @@
-mount
+mount sistema.txt
 mkdir /d1
 mkdir /d1/d2
 touch /d1/teste.txt
 umount
+sai
+

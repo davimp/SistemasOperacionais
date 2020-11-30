@@ -5,6 +5,7 @@
 #include <time.h>
 #define MAXN 25000 /* quantidade de blocos */
 #define BLOCO 4000 /* cada bloco pode ter até quatro mil caracteres */
+#define MIN(x, y) (x < y) ? x : y
 
 using namespace std;
 
@@ -30,6 +31,7 @@ struct Diretorio{
 
 int bitmap[MAXN];
 int FAT[MAXN];
+string BLOCOS[MAXN];
 int livre;
 int num_diretorios, num_arquivos;
 Diretorio diretorios[MAXN];
@@ -38,7 +40,6 @@ Arquivo arquivos[MAXN];
 //unordered_map<int, Arquivo> arquivos;
 vector<int> grafo[MAXN];
 unordered_map<string, int> d, a; /* liga o caminho do diretório/arquivo ao seu id */
-
 
 int proximo_livre(){
     int x;
@@ -155,7 +156,7 @@ int main(int argc, char *argv[]){
     int i,j,k, next_id, blocos, cont;
     string nome_arq, s, content, aux;
     string linha_lida, comando, argumentos[10];
-    char saux[10];
+    char saux[1000];
     fstream arq, original;
     streampos pos;
     num_diretorios = num_arquivos = 0;
@@ -192,7 +193,7 @@ int main(int argc, char *argv[]){
 
     /* espaço ocupado por fat + bitmap + primeiro diretorio no início do arquivo */
 
-    for(i = 0; i < 40; i++){
+    for(i = 0; i <= 40; i++){
         bitmap[i] = 1;
     }
     livre -= 40;
@@ -212,7 +213,7 @@ int main(int argc, char *argv[]){
             arq.open(argumentos[0], fstream::out | fstream::in | fstream::app);
 
             arq >> s;
-            cout << s << endl;
+            //cout << s << endl;
 
             if(arq.eof())
             {   /* 125/4 25/4*/
@@ -278,7 +279,7 @@ int main(int argc, char *argv[]){
 
         }
         else if(comando == "mkdir"){
-            /*diretorio*/
+            /* diretorio */
             cin >> argumentos[0];
 
             if(d.count(argumentos[0])) /* caso já tenha sido criado, continua */
@@ -290,10 +291,10 @@ int main(int argc, char *argv[]){
             if(i < MAXN)
             {
                 /* acha qual o id do diretorio */
-                for(i = 0; i < MAXN; i++){
-                    if(diretorios[i].nome == "") break;
+                for(k = 0; k < MAXN; k++){
+                    if(diretorios[k].nome == "") break;
                 }
-                next_id = i;
+                next_id = k;
 
                 /* ajusta bitmap e FAT*/
                 livre--;
@@ -332,6 +333,9 @@ int main(int argc, char *argv[]){
         else if(comando == "touch"){
             /* arquivo */
             cin >> argumentos[0];
+            
+            k = proximo_livre();
+
             if(a.count(argumentos[0]) == 0)
             {
                 /* acha o qual será o id do arquivo */
@@ -339,7 +343,11 @@ int main(int argc, char *argv[]){
                     if(arquivos[i].nome == "") break;
                 }
                 next_id = i;
-
+  
+                /* ajusta bitmap e FAT*/
+                bitmap[k] = 1;
+                FAT[k] = -1;
+  
                 /* cria arquivo em next_id */
                 aux = argumentos[0].substr(0, argumentos[0].find_last_of("/"));
                 j = d[aux];
@@ -347,11 +355,14 @@ int main(int argc, char *argv[]){
                 arquivos[next_id].nome = argumentos[0].substr(argumentos[0].find_last_of("/")+1, argumentos[0].length());
                 arquivos[next_id].conteudo = "";
                 arquivos[next_id].tamanho = 1;
+                arquivos[next_id].inicio = k;
                 arquivos[next_id].diretorio = aux;
                 a[argumentos[0]] = next_id;
                 diretorios[j].arquivos.push_back(next_id);
                 num_arquivos++;
                 arquivos[next_id].criado = time(NULL);
+                arquivos[next_id].modificado = time(NULL);
+                arquivos[next_id].acessado = time(NULL);
                 k = next_id;
             }
             else
@@ -390,24 +401,104 @@ int main(int argc, char *argv[]){
 
             remove(nome_arq.data());
             arq.open(nome_arq, fstream::out | fstream::in | fstream::app);
-            /*writer*/
-            //Bitmap
-            // arq >> s;
+            /* writer */
+            // Bitmap
+            // arq >> s; 
             // for(i = 0; i < s.length(); i++)
             //     bitmap[i] = (s[i] == '1');
             for(i = 0; i < 25000; i++)
                 arq << bitmap[i];
+            s = "";
+            for(i = 0; i < 2999; i++)
+                s += "_";
+            arq << s + "\n";
             
-            //FAT
+            // FAT
             for(i = 0; i < 25000; i++)
             {
                 sprintf(saux, "%04d\n", FAT[i]);
                 arq << string(saux);
-
             }
-            arq.close();
+            s = "";
+            for(i = 0; i < 1999; i++)
+                s += "_";
+            arq << s + "\n";
+            // FAT
+            // arquivo.inicio
+            // Diretorios
+            
+            for(i = 0; i < num_diretorios; i++)
+            {
+                int local = diretorios[i].local;
+                cout << local << endl;
+                s = "";
+                s += "1\n";
+                string nome;
+
+                if(i == 0)
+                {            
+                    sprintf(saux, "%05d ", diretorios[0].local);
+                    s += string(saux);
+
+                    nome = diretorios[0].nome;
+                    nome = ".";
+                    for(int ii = 0; ii < 20 - nome.length(); ii++)
+                        s += " ";
+                    s += nome + " ";
+
+                    sprintf(saux, "%09d %010d %010d %010d\n", 0,  diretorios[0].criado , diretorios[0].modificado , diretorios[0].acessado);
+                    s += string(saux);
+                    
+                }
+
+                for(int z : grafo[i])
+                {
+                    sprintf(saux, "%05d ", diretorios[z].local);
+                    s += string(saux);
+
+                    nome = diretorios[z].nome;
+                    nome = nome.substr(nome.find_last_of("/")+1, nome.length());
+                    for(int ii = 0; ii < 20 - nome.length(); ii++)
+                        s += " ";
+                    s += nome + " ";
+
+                    sprintf(saux, "%09d %010d %010d %010d\n", 0,  diretorios[z].criado , diretorios[z].modificado , diretorios[z].acessado);
+                    s += string(saux);
+                }
+
+                for(int z : diretorios[i].arquivos)
+                {
+                    sprintf(saux, "%05d ", arquivos[z].inicio);
+                    s += string(saux);
+
+                    nome = arquivos[z].nome;
+                    /*nome = nome.substr(nome.find_last_of("/")+1, nome.length());*/
+                    for(int ii = 0; ii < 20 - nome.length(); ii++)
+                        s += " ";
+                    s += nome + " ";
+
+                    sprintf(saux, "%09d %010d %010d %010d\n", arquivos[z].tamanho,  arquivos[z].criado , arquivos[z].modificado , arquivos[z].acessado);
+                    s += string(saux);
+
+                }
+
+                //BLOCOS[local] = s.substr(0, MIN(s.length(), 4000));
+                // // // // // BLOCOS[FAT[local]] = s.substr(MIN(s.length(), 4000), MIN(s.length(), 8000));
+                // // // // // BLOCOS[FAT[FAT[local]]] = s.substr(MIN(s.length(), 8000), MIN(s.length(), 12000));
+
+    
+                cout << "Teste " << string("1234").substr(0, 3) << endl;
+
+                //cerr << "S: " << s << endl;
+                arq << s;
+            }
+            
+           arq.close();
+           cerr << "PASSOU\n";
         }
         else if(comando == "sai"){
+            cout << "SAÍRA" << endl;
+            return 0;
             break;
         }
         else{
