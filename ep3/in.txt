@@ -1,7 +1,11 @@
 mount sistema.txt
 mkdir /d1
 mkdir /d1/d2
-touch /d1/teste.txt
+mkdir /d3
+touch /d3/teste2.txt
+cp abc.txt /d1/teste.txt
+cp grande.txt /d3/teste2.txt
+rm /d1/teste.txt
 umount
 sai
 

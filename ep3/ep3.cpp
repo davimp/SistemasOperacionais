@@ -1,11 +1,14 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <queue>
 #include <unordered_map>
 #include <time.h>
 #define MAXN 25000 /* quantidade de blocos */
 #define BLOCO 4000 /* cada bloco pode ter até quatro mil caracteres */
 #define MIN(x, y) (x < y) ? x : y
+#define MAX(x, y) (x > y) ? x : y
+#define FATBIT 45
 
 using namespace std;
 
@@ -43,7 +46,7 @@ unordered_map<string, int> d, a; /* liga o caminho do diretório/arquivo ao seu 
 
 int proximo_livre(){
     int x;
-    for(x = 39; x < MAXN; x++){
+    for(x = FATBIT; x < MAXN; x++){
         if(!bitmap[x]){
             break;
         }
@@ -185,7 +188,7 @@ int main(int argc, char *argv[]){
     /* inicia o primeiro diretorio */
     d["/"] = 0;
     diretorios[0].nome = "/";
-    diretorios[0].local = 40;
+    diretorios[0].local = FATBIT;
     diretorios[0].acessado = time(NULL);
     diretorios[0].criado = time(NULL);
     diretorios[0].modificado = time(NULL);
@@ -193,10 +196,11 @@ int main(int argc, char *argv[]){
 
     /* espaço ocupado por fat + bitmap + primeiro diretorio no início do arquivo */
 
-    for(i = 0; i <= 40; i++){
+    for(i = 0; i <= FATBIT; i++){
         bitmap[i] = 1;
+        FAT[i] = -1;
     }
-    livre -= 40;
+    livre -= FATBIT;
 
     /* shell */
     while(1)
@@ -212,15 +216,143 @@ int main(int argc, char *argv[]){
             cout << "monte " << argumentos[0] << endl;
             arq.open(argumentos[0], fstream::out | fstream::in | fstream::app);
 
-            arq >> s;
-            //cout << s << endl;
+            //arq >> s;
 
+            // se o arquivo estiver vazio
             if(arq.eof())
-            {   /* 125/4 25/4*/
-                for(i = 0; i < (32 + 7)*BLOCO; i++)
-                    arq << '0';
+            {
+                cerr << "ARQUIVO VAZIO" << endl;
+                continue;
             }
-            arq.close();
+
+            //continue;
+            //bitmap
+            arq >> s;
+
+            for(i = 0; i < 25000; i++)
+                bitmap[i] = (s[i] == '1');
+            
+            for(i = 0; i < 25000; i++)
+            {
+                arq >> s;
+                FAT[i] = atoi(s.data());
+            }
+
+            arq >> s;
+            
+            int bloco_estou = FATBIT;
+            int id = 0;
+
+            queue<int> fila_dir, fila_arq;
+
+            fila_dir.push(id);
+
+            cerr << "BFS" << endl;
+
+            while(!fila_dir.empty())
+            {
+                id = fila_dir.front();
+                fila_dir.pop();
+
+                arq.seekg(diretorios[id].local*BLOCO, fstream::beg);
+
+            cerr << id << " BFS2" << endl;
+
+
+                arq >> s;
+
+                if(s == "1")
+                {
+                    arq >> s;
+                    while(s[0] != '_')
+                    {
+                        int local = atoi(s.data());
+                        arq >> s;
+                        cerr << "nome: " << s << endl;
+
+                        if(s[s.length()-1] == '/')
+                        {
+                            if(s != "/")
+                                {diretorios[num_diretorios].nome = diretorios[id].nome + s;
+                                cerr << "nominho: " << diretorios[num_diretorios].nome << endl; }
+                            else
+                                diretorios[num_diretorios].nome = "/";
+                            arq >> s;
+                            arq >> s;
+                            diretorios[num_diretorios].criado = atoi(s.data());
+                            arq >> s;
+                            diretorios[num_diretorios].modificado = atoi(s.data());
+                            arq >> s;
+                            diretorios[num_diretorios].acessado = atoi(s.data());
+
+
+                            if(diretorios[num_diretorios].nome != "/")
+                            {
+                                grafo[id].push_back(num_diretorios);
+                                diretorios[num_diretorios].local = local;
+                                fila_dir.push(num_diretorios);
+                                num_diretorios++;
+                            }
+                        }
+                        else
+                        {
+                            diretorios[id].arquivos.push_back(num_arquivos);
+                            arquivos[num_arquivos].inicio = local;
+                            arquivos[num_arquivos].nome = arquivos[id].nome + s;
+                            arq >> s;
+                            arquivos[num_arquivos].tamanho = atoi(s.data());
+                            arq >> s;
+                            arquivos[num_arquivos].criado = atoi(s.data());
+                            arq >> s;
+                            arquivos[num_arquivos].modificado = atoi(s.data());
+                            arq >> s;
+                            arquivos[num_arquivos].acessado = atoi(s.data());
+                            
+                            fila_arq.push(num_arquivos);
+                            num_arquivos++;
+                        }
+                        arq >> s;
+                    }
+                }
+                else
+                {
+                    cerr << "ESSA MENSAGEM SÓ APARECERÁ EM CASO DE SINTAXE ERRADA NO ARQUIVO" << endl;
+                }
+            }
+
+            cerr << "FILA" << endl;
+
+            while(!fila_arq.empty())
+            {
+                id = fila_arq.front();
+                fila_arq.pop();
+
+                arquivos[id].conteudo = "";
+
+                int local = arquivos[id].inicio;
+
+                arq.seekg(local*BLOCO, fstream::beg);
+                arq >> s;
+                if(arquivos[id].tamanho)
+                {
+                    arq >> s;
+                    arquivos[id].conteudo += s;
+                }   
+
+                local = FAT[local];
+
+                while(local != -1)
+                {
+                    arq >> s;
+                    arquivos[id].conteudo += s;
+                    local = FAT[local];
+                }
+            }
+            
+            cerr << "num_dir: " << num_diretorios << endl;
+            cerr << "num_arq: " << num_arquivos << endl;
+
+           arq.close();
         }
         else if(comando == "cp"){
             /*origem destino*/
@@ -402,6 +534,7 @@ int main(int argc, char *argv[]){
             remove(nome_arq.data());
             arq.open(nome_arq, fstream::out | fstream::in | fstream::app);
             /* writer */
+            int ultimo_bloco = FATBIT;
             // Bitmap
             // arq >> s; 
             // for(i = 0; i < s.length(); i++)
@@ -416,7 +549,7 @@ int main(int argc, char *argv[]){
             // FAT
             for(i = 0; i < 25000; i++)
             {
-                sprintf(saux, "%04d\n", FAT[i]);
+                sprintf(saux, "%05d\n", FAT[i]);
                 arq << string(saux);
             }
             s = "";
@@ -430,9 +563,9 @@ int main(int argc, char *argv[]){
             for(i = 0; i < num_diretorios; i++)
             {
                 int local = diretorios[i].local;
+                ultimo_bloco = MAX(ultimo_bloco, local);
                 cout << local << endl;
-                s = "";
-                s += "1\n";
+                s = "1\n";
                 string nome;
 
                 if(i == 0)
@@ -441,7 +574,7 @@ int main(int argc, char *argv[]){
                     s += string(saux);
 
                     nome = diretorios[0].nome;
-                    nome = ".";
+                    nome = "/";
                     for(int ii = 0; ii < 20 - nome.length(); ii++)
                         s += " ";
                     s += nome + " ";
@@ -453,11 +586,13 @@ int main(int argc, char *argv[]){
 
                 for(int z : grafo[i])
                 {
+                    ultimo_bloco = MAX(ultimo_bloco, diretorios[z].local);
                     sprintf(saux, "%05d ", diretorios[z].local);
                     s += string(saux);
 
-                    nome = diretorios[z].nome;
+                    nome = diretorios[z].nome.substr(0, nome.length()-1);
                     nome = nome.substr(nome.find_last_of("/")+1, nome.length());
+                    nome += "/";
                     for(int ii = 0; ii < 20 - nome.length(); ii++)
                         s += " ";
                     s += nome + " ";
@@ -486,12 +621,58 @@ int main(int argc, char *argv[]){
                 // // // // // BLOCOS[FAT[local]] = s.substr(MIN(s.length(), 4000), MIN(s.length(), 8000));
                 // // // // // BLOCOS[FAT[FAT[local]]] = s.substr(MIN(s.length(), 8000), MIN(s.length(), 12000));
 
-    
-                cout << "Teste " << string("1234").substr(0, 3) << endl;
-
                 //cerr << "S: " << s << endl;
-                arq << s;
+                //arq << s;
+                BLOCOS[local] = s;
             }
+
+            for(i = 0; i < num_arquivos; i++)
+            {
+                int local = arquivos[i].inicio;
+                cout << "arquivo:" << local << endl;
+                ultimo_bloco = MAX(ultimo_bloco, local);
+                s = "0\n";
+
+                s += arquivos[i].conteudo;
+
+                //arq << s;
+
+                while(local != -1)
+                {
+                    BLOCOS[local] = s.substr(0, MIN(s.length(), BLOCO-1));
+                    BLOCOS[local] += "\n";
+                    s = s.substr(MIN(s.length(), BLOCO-1), s.length());
+                    local = FAT[local];
+                    ultimo_bloco = MAX(ultimo_bloco, local);
+                }
+            }
+
+            cerr << "SAIU" << endl;
+
+            for(i = FATBIT; i <= ultimo_bloco; i++)
+            {
+                cout << "DEBUG\n";
+                //cout << "bloco: " << i << endl << " " << BLOCOS[i] << endl;
+                
+                cerr << "TENTA1" << endl;
+                arq << BLOCOS[i];
+                cerr << "ESCREVEU1" << endl;
+                s = "";
+                // completa o bloco
+                cout << BLOCOS[i] << endl;
+                cout << BLOCOS[i].length() << endl;
+                for(int c = 0; c < 4000-((int) BLOCOS[i].length())-1; c++)
+                    s += "_"; 
+                if(BLOCOS[i].length() < 4000)
+                    s += "\n";
+                
+                cerr << "TENTA" << endl;
+                arq << s;
+                cerr << "ESCREVEU" << endl;
+            }
+
+
+           cerr << "QUASE PASSOU\n";
             
            arq.close();
            cerr << "PASSOU\n";
