@@ -35,12 +35,10 @@ struct Diretorio{
 int bitmap[MAXN];
 int FAT[MAXN];
 string BLOCOS[MAXN];
-int livre;
+int livre, desperdicio;
 int num_diretorios, num_arquivos;
 Diretorio diretorios[MAXN];
-//unordered_map<int, Diretorio> diretorios;
 Arquivo arquivos[MAXN];
-//unordered_map<int, Arquivo> arquivos;
 vector<int> grafo[MAXN];
 unordered_map<string, int> d, a; /* liga o caminho do diretório/arquivo ao seu id */
 
@@ -155,18 +153,14 @@ void rmdir(string n){
     diretorios[id].acessado = -1;
 }
 
-int main(int argc, char *argv[]){
-    int i,j,k, next_id, blocos, cont;
-    string nome_arq, s, content, aux;
-    string linha_lida, comando, argumentos[10];
-    char saux[1000];
-    fstream arq, original;
-    streampos pos;
+void limpa(){
+    int i, j;
     num_diretorios = num_arquivos = 0;
     livre = 25000; /* quantos blocos estão livres */
-
+    desperdicio = 0;
     /* inicia os vetores de diretorios e arquivos */
     for(i = 0; i < MAXN; i++){
+        grafo[i].clear();
         diretorios[i].nome = "";
         diretorios[i].arquivos.clear();
         diretorios[i].local = -1;
@@ -199,8 +193,160 @@ int main(int argc, char *argv[]){
     for(i = 0; i <= FATBIT; i++){
         bitmap[i] = 1;
         FAT[i] = -1;
+        BLOCOS[i] = "";
+    }
+    for(i = FATBIT+1; i < MAXN; i++){
+        bitmap[i] = 0;
+        FAT[i] = -1;
+        BLOCOS[i] = "";
     }
     livre -= FATBIT;
+}
+
+void umount(string nome_arq)
+{ 
+    int i;
+    char saux[1000];
+    string s;
+    fstream arq;
+
+    remove(nome_arq.data());
+    arq.open(nome_arq, fstream::out | fstream::in | fstream::app);
+    /* writer */
+    int ultimo_bloco = FATBIT;
+    
+    // Bitmap
+    for(i = 0; i < 25000; i++)
+        arq << bitmap[i];
+    s = "";
+    for(i = 0; i < 2999; i++)
+        s += "_";
+    arq << s + "\n";
+    
+    // FAT
+    for(i = 0; i < 25000; i++)
+    {
+        sprintf(saux, "%05d\n", FAT[i]);
+        arq << string(saux);
+    }
+    s = "";
+    for(i = 0; i < 1999; i++)
+        s += "_";
+    arq << s + "\n";
+
+    // Diretorios
+    for(i = 0; i < num_diretorios; i++)
+    {
+        int local = diretorios[i].local;
+        ultimo_bloco = MAX(ultimo_bloco, local);
+        s = "1\n";
+        string nome;
+
+        if(i == 0)
+        {            
+            sprintf(saux, "%05d ", diretorios[0].local);
+            s += string(saux);
+
+            nome = diretorios[0].nome;
+            nome = "/";
+            for(int ii = 0; ii < 20 - nome.length(); ii++)
+                s += " ";
+            s += nome + " ";
+
+            sprintf(saux, "%09d %010d %010d %010d\n", -1,  diretorios[0].criado , diretorios[0].modificado , diretorios[0].acessado);
+            s += string(saux);            
+        }
+
+        for(int z : grafo[i])
+        {
+            ultimo_bloco = MAX(ultimo_bloco, diretorios[z].local);
+            sprintf(saux, "%05d ", diretorios[z].local);
+            s += string(saux);
+
+            nome = diretorios[z].nome;
+            nome = nome.substr(nome.find_last_of("/")+1, nome.length());
+            for(int ii = 0; ii < 20 - nome.length(); ii++)
+                s += " ";
+            s += nome + " ";
+
+            sprintf(saux, "%09d %010d %010d %010d\n", -1,  diretorios[z].criado , diretorios[z].modificado , diretorios[z].acessado);
+            s += string(saux);
+        }
+
+        for(int z : diretorios[i].arquivos)
+        {
+            sprintf(saux, "%05d ", arquivos[z].inicio);
+            s += string(saux);
+
+            nome = arquivos[z].nome;
+            /*nome = nome.substr(nome.find_last_of("/")+1, nome.length());*/
+            for(int ii = 0; ii < 20 - nome.length(); ii++)
+                s += " ";
+            s += nome + " ";
+
+            sprintf(saux, "%09d %010d %010d %010d\n", arquivos[z].tamanho,  arquivos[z].criado , arquivos[z].modificado , arquivos[z].acessado);
+            s += string(saux);
+
+        }
+
+        BLOCOS[local] = s;
+    }
+
+    for(i = 0; i < num_arquivos; i++)
+    {
+        int local = arquivos[i].inicio;
+        
+        ultimo_bloco = MAX(ultimo_bloco, local);
+        s = "0\n";
+
+        s += arquivos[i].conteudo;
+
+        //arq << s;
+
+        while(local != -1)
+        {
+            BLOCOS[local] = s.substr(0, MIN(s.length(), BLOCO-1));
+            BLOCOS[local] += "\n";
+            s = s.substr(MIN(s.length(), BLOCO-1), s.length());
+            local = FAT[local];
+            ultimo_bloco = MAX(ultimo_bloco, local);
+        }
+    }
+
+    desperdicio = 2000 + 2999;
+    for(i = FATBIT; i <= ultimo_bloco; i++)
+    {
+        arq << BLOCOS[i];
+        
+        s = "";
+
+        // completa o bloco
+        for(int c = 0; c < 4000-((int) BLOCOS[i].length())-1; c++)
+            s += "_"; 
+        if(BLOCOS[i].length() < 4000)
+            s += "\n";
+        
+        if(bitmap[i])
+            desperdicio += 4000 - (BLOCOS[i].length());
+
+        arq << s;
+    }
+    arq.close();
+
+    cerr << "desper: " << desperdicio << endl;
+
+
+}
+
+int main(int argc, char *argv[]){
+    int i,j,k, next_id, blocos, cont;
+    string nome_arq, s, content, aux;
+    string linha_lida, comando, argumentos[10];
+    char saux[1000];
+    fstream arq, original;
+    streampos pos;
+
+    limpa();
 
     /* shell */
     while(1)
@@ -213,20 +359,22 @@ int main(int argc, char *argv[]){
             /* arquivo */
             cin >> argumentos[0];
             nome_arq = argumentos[0];
-            cout << "monte " << argumentos[0] << endl;
+            /*cout << "monte " << argumentos[0] << endl;*/
+            limpa();
+            //continue;
             arq.open(argumentos[0], fstream::out | fstream::in | fstream::app);
 
             //arq >> s;
 
             // se o arquivo estiver vazio
-            if(arq.eof())
+            if(!(arq >> s))
             {
                 cerr << "ARQUIVO VAZIO" << endl;
+                arq.close();
                 continue;
             }
 
-            //continue;
-            //bitmap
+            arq.seekg(0, fstream::beg);
             arq >> s;
 
             for(i = 0; i < 25000; i++)
@@ -242,12 +390,14 @@ int main(int argc, char *argv[]){
             
             int bloco_estou = FATBIT;
             int id = 0;
+            string nome;
+
+            num_diretorios = 0;
+            desperdicio = 2000 + 2999;
 
             queue<int> fila_dir, fila_arq;
 
             fila_dir.push(id);
-
-            cerr << "BFS" << endl;
 
             while(!fila_dir.empty())
             {
@@ -256,28 +406,29 @@ int main(int argc, char *argv[]){
 
                 arq.seekg(diretorios[id].local*BLOCO, fstream::beg);
 
-            cerr << id << " BFS2" << endl;
-
-
                 arq >> s;
 
                 if(s == "1")
                 {
                     arq >> s;
+                    desperdicio += 4000;
+                    desperdicio -= 2;
                     while(s[0] != '_')
                     {
                         int local = atoi(s.data());
                         arq >> s;
-                        cerr << "nome: " << s << endl;
-
-                        if(s[s.length()-1] == '/')
+                        nome = s;
+                        
+                        arq >> s;
+                        if(atoi(s.data()) == -1)
                         {
-                            if(s != "/")
-                                {diretorios[num_diretorios].nome = diretorios[id].nome + s;
-                                cerr << "nominho: " << diretorios[num_diretorios].nome << endl; }
+                            if(nome != "/")
+                                diretorios[num_diretorios].nome = diretorios[id].nome + ((id == 0)? "" : "/") + nome;
                             else
                                 diretorios[num_diretorios].nome = "/";
-                            arq >> s;
+                            d[diretorios[num_diretorios].nome] = num_diretorios;
+                            cerr << "dir: " << diretorios[num_diretorios].nome  << " " << num_diretorios << endl;
+
                             arq >> s;
                             diretorios[num_diretorios].criado = atoi(s.data());
                             arq >> s;
@@ -285,21 +436,23 @@ int main(int argc, char *argv[]){
                             arq >> s;
                             diretorios[num_diretorios].acessado = atoi(s.data());
 
-
                             if(diretorios[num_diretorios].nome != "/")
                             {
                                 grafo[id].push_back(num_diretorios);
                                 diretorios[num_diretorios].local = local;
                                 fila_dir.push(num_diretorios);
-                                num_diretorios++;
                             }
+                            num_diretorios++;
                         }
                         else
                         {
+                            cerr << "nome: " << nome << endl;
                             diretorios[id].arquivos.push_back(num_arquivos);
                             arquivos[num_arquivos].inicio = local;
-                            arquivos[num_arquivos].nome = arquivos[id].nome + s;
-                            arq >> s;
+                            arquivos[num_arquivos].nome = nome;
+
+                            a[diretorios[id].nome + ((id == 0)? "" : "/") + arquivos[num_arquivos].nome] = num_arquivos;
+
                             arquivos[num_arquivos].tamanho = atoi(s.data());
                             arq >> s;
                             arquivos[num_arquivos].criado = atoi(s.data());
@@ -311,6 +464,7 @@ int main(int argc, char *argv[]){
                             fila_arq.push(num_arquivos);
                             num_arquivos++;
                         }
+                        desperdicio -= 70;
                         arq >> s;
                     }
                 }
@@ -320,12 +474,11 @@ int main(int argc, char *argv[]){
                 }
             }
 
-            cerr << "FILA" << endl;
 
             while(!fila_arq.empty())
             {
                 id = fila_arq.front();
-                fila_arq.pop();
+                fila_arq.pop(); 
 
                 arquivos[id].conteudo = "";
 
@@ -333,11 +486,13 @@ int main(int argc, char *argv[]){
 
                 arq.seekg(local*BLOCO, fstream::beg);
                 arq >> s;
+
                 if(arquivos[id].tamanho)
                 {
                     arq >> s;
                     arquivos[id].conteudo += s;
-                }   
+                    cerr << "id: " << id << endl;
+                }
 
                 local = FAT[local];
 
@@ -347,12 +502,27 @@ int main(int argc, char *argv[]){
                     arquivos[id].conteudo += s;
                     local = FAT[local];
                 }
+                if(arquivos[id].tamanho)
+                {
+                    desperdicio += 4000 - (s.length()+1);
+                    if(FAT[arquivos[id].inicio] == -1)
+                        desperdicio -= 2;
+                    cerr << "comprimento: " << s.length() << endl;
+                }
+                else
+                    desperdicio += 4000-1-2;
+                
             }
-            
-            cerr << "num_dir: " << num_diretorios << endl;
-            cerr << "num_arq: " << num_arquivos << endl;
 
+            /* atualiza quantos blocos tem livre */
+            livre = 25000;
+            for(i = 0; i < MAXN; i++){
+                if(bitmap[i]){
+                    livre--;
+                }
+            }
            arq.close();
+            cerr << "desper: " << desperdicio << endl;
         }
         else if(comando == "cp"){
             /*origem destino*/
@@ -408,6 +578,8 @@ int main(int argc, char *argv[]){
             }
             else
                 cout << "Não há espaço" << endl;
+            
+            umount(nome_arq);
 
         }
         else if(comando == "mkdir"){
@@ -449,18 +621,22 @@ int main(int argc, char *argv[]){
             }
             else
                 cout << "Lotado" << endl;
+            umount(nome_arq);
 
         }
         else if(comando == "rmdir"){
             /*diretorio*/
             cin >> argumentos[0];
             rmdir(argumentos[0]);
+            umount(nome_arq);
         }
         else if(comando == "cat"){
             /* arquivo */
             cin >> argumentos[0];
             j = a[argumentos[0]];
+            cerr << "debug " << j << " " << argumentos[0] << endl;
             cout << arquivos[j].conteudo << endl;
+            umount(nome_arq);
         }
         else if(comando == "touch"){
             /* arquivo */
@@ -486,7 +662,7 @@ int main(int argc, char *argv[]){
 
                 arquivos[next_id].nome = argumentos[0].substr(argumentos[0].find_last_of("/")+1, argumentos[0].length());
                 arquivos[next_id].conteudo = "";
-                arquivos[next_id].tamanho = 1;
+                arquivos[next_id].tamanho = 0;
                 arquivos[next_id].inicio = k;
                 arquivos[next_id].diretorio = aux;
                 a[argumentos[0]] = next_id;
@@ -501,12 +677,14 @@ int main(int argc, char *argv[]){
                 k = a[argumentos[0]];
             
             arquivos[k].acessado = time(NULL);
+            umount(nome_arq);
         }
         else if(comando == "rm"){
             /* arquivo */
             cin >> argumentos[0];
             cout << "apagando arquivo " << argumentos[0] << endl;
             rm(argumentos[0]);
+            umount(nome_arq);
         }
         else if(comando == "ls"){
             /* diretorio */
@@ -527,155 +705,12 @@ int main(int argc, char *argv[]){
             cout << "quantidade de diretorios: " << num_diretorios <<  endl;
             cout << "quantidade de arquivo: " << num_arquivos <<  endl;
             cout << "quantidade de livre: " << livre <<  endl;
-            cout << "quantidade de desperdiçado: " << 0 <<  endl;
+            cout << "quantidade de desperdiçado: " << desperdicio <<  endl;
         }
         else if(comando == "umount"){
 
-            remove(nome_arq.data());
-            arq.open(nome_arq, fstream::out | fstream::in | fstream::app);
-            /* writer */
-            int ultimo_bloco = FATBIT;
-            // Bitmap
-            // arq >> s; 
-            // for(i = 0; i < s.length(); i++)
-            //     bitmap[i] = (s[i] == '1');
-            for(i = 0; i < 25000; i++)
-                arq << bitmap[i];
-            s = "";
-            for(i = 0; i < 2999; i++)
-                s += "_";
-            arq << s + "\n";
-            
-            // FAT
-            for(i = 0; i < 25000; i++)
-            {
-                sprintf(saux, "%05d\n", FAT[i]);
-                arq << string(saux);
-            }
-            s = "";
-            for(i = 0; i < 1999; i++)
-                s += "_";
-            arq << s + "\n";
-            // FAT
-            // arquivo.inicio
-            // Diretorios
-            
-            for(i = 0; i < num_diretorios; i++)
-            {
-                int local = diretorios[i].local;
-                ultimo_bloco = MAX(ultimo_bloco, local);
-                cout << local << endl;
-                s = "1\n";
-                string nome;
-
-                if(i == 0)
-                {            
-                    sprintf(saux, "%05d ", diretorios[0].local);
-                    s += string(saux);
-
-                    nome = diretorios[0].nome;
-                    nome = "/";
-                    for(int ii = 0; ii < 20 - nome.length(); ii++)
-                        s += " ";
-                    s += nome + " ";
-
-                    sprintf(saux, "%09d %010d %010d %010d\n", 0,  diretorios[0].criado , diretorios[0].modificado , diretorios[0].acessado);
-                    s += string(saux);
-                    
-                }
-
-                for(int z : grafo[i])
-                {
-                    ultimo_bloco = MAX(ultimo_bloco, diretorios[z].local);
-                    sprintf(saux, "%05d ", diretorios[z].local);
-                    s += string(saux);
-
-                    nome = diretorios[z].nome.substr(0, nome.length()-1);
-                    nome = nome.substr(nome.find_last_of("/")+1, nome.length());
-                    nome += "/";
-                    for(int ii = 0; ii < 20 - nome.length(); ii++)
-                        s += " ";
-                    s += nome + " ";
-
-                    sprintf(saux, "%09d %010d %010d %010d\n", 0,  diretorios[z].criado , diretorios[z].modificado , diretorios[z].acessado);
-                    s += string(saux);
-                }
-
-                for(int z : diretorios[i].arquivos)
-                {
-                    sprintf(saux, "%05d ", arquivos[z].inicio);
-                    s += string(saux);
-
-                    nome = arquivos[z].nome;
-                    /*nome = nome.substr(nome.find_last_of("/")+1, nome.length());*/
-                    for(int ii = 0; ii < 20 - nome.length(); ii++)
-                        s += " ";
-                    s += nome + " ";
-
-                    sprintf(saux, "%09d %010d %010d %010d\n", arquivos[z].tamanho,  arquivos[z].criado , arquivos[z].modificado , arquivos[z].acessado);
-                    s += string(saux);
-
-                }
-
-                //BLOCOS[local] = s.substr(0, MIN(s.length(), 4000));
-                // // // // // BLOCOS[FAT[local]] = s.substr(MIN(s.length(), 4000), MIN(s.length(), 8000));
-                // // // // // BLOCOS[FAT[FAT[local]]] = s.substr(MIN(s.length(), 8000), MIN(s.length(), 12000));
-
-                //cerr << "S: " << s << endl;
-                //arq << s;
-                BLOCOS[local] = s;
-            }
-
-            for(i = 0; i < num_arquivos; i++)
-            {
-                int local = arquivos[i].inicio;
-                cout << "arquivo:" << local << endl;
-                ultimo_bloco = MAX(ultimo_bloco, local);
-                s = "0\n";
-
-                s += arquivos[i].conteudo;
-
-                //arq << s;
-
-                while(local != -1)
-                {
-                    BLOCOS[local] = s.substr(0, MIN(s.length(), BLOCO-1));
-                    BLOCOS[local] += "\n";
-                    s = s.substr(MIN(s.length(), BLOCO-1), s.length());
-                    local = FAT[local];
-                    ultimo_bloco = MAX(ultimo_bloco, local);
-                }
-            }
-
-            cerr << "SAIU" << endl;
-
-            for(i = FATBIT; i <= ultimo_bloco; i++)
-            {
-                cout << "DEBUG\n";
-                //cout << "bloco: " << i << endl << " " << BLOCOS[i] << endl;
-                
-                cerr << "TENTA1" << endl;
-                arq << BLOCOS[i];
-                cerr << "ESCREVEU1" << endl;
-                s = "";
-                // completa o bloco
-                cout << BLOCOS[i] << endl;
-                cout << BLOCOS[i].length() << endl;
-                for(int c = 0; c < 4000-((int) BLOCOS[i].length())-1; c++)
-                    s += "_"; 
-                if(BLOCOS[i].length() < 4000)
-                    s += "\n";
-                
-                cerr << "TENTA" << endl;
-                arq << s;
-                cerr << "ESCREVEU" << endl;
-            }
-
-
-           cerr << "QUASE PASSOU\n";
-            
-           arq.close();
-           cerr << "PASSOU\n";
+            umount(nome_arq);
+          
         }
         else if(comando == "sai"){
             cout << "SAÍRA" << endl;
