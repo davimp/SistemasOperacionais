@@ -15,7 +15,8 @@ int main(){
     cin >> tam;
     remove(s.data());
     arq.open(s, fstream::out | fstream::in | fstream::app);
-
+    arq << "mount sistemadir2.txt\n";
+    
     for(int i = 0; i < tam; i++){
         arq << 't';
     }

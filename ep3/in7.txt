@@ -1,0 +1,4 @@
+mount sis1.txt
+rmdir /dir1
+umount
+sai

@@ -368,10 +368,6 @@ void umount(string nome_arq)
         arq << s;
     }
     arq.close();
-
-    cerr << "desper: " << desperdicio << endl;
-
-
 }
 
 int main(int argc, char *argv[]){
@@ -395,17 +391,14 @@ int main(int argc, char *argv[]){
             /* arquivo */
             cin >> argumentos[0];
             nome_arq = argumentos[0];
-            /*cout << "monte " << argumentos[0] << endl;*/
-            limpa();
-            //continue;
-            arq.open(argumentos[0], fstream::out | fstream::in | fstream::app);
 
-            //arq >> s;
+            limpa();
+
+            arq.open(argumentos[0], fstream::out | fstream::in | fstream::app);
 
             // se o arquivo estiver vazio
             if(!(arq >> s))
             {
-                cerr << "ARQUIVO VAZIO" << endl;
                 arq.close();
                 continue;
             }
@@ -558,7 +551,6 @@ int main(int argc, char *argv[]){
                 }
             }
            arq.close();
-            cerr << "desper: " << desperdicio << endl;
         }
         else if(comando == "cp"){
             /*origem destino*/

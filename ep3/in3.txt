@@ -1,0 +1,4 @@
+mount sis2.txt
+cp arq10.txt /oi.txt
+umount
+sai

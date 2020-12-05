@@ -1,0 +1,4 @@
+mount sis3.txt
+rm /oi.txt
+umount
+sai
