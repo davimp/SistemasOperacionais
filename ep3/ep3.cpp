@@ -4,6 +4,8 @@
 #include <queue>
 #include <unordered_map>
 #include <time.h>
+#include <cstring>
+#include <stdlib.h>
 #define MAXN 25000 /* quantidade de blocos */
 #define BLOCO 4000 /* cada bloco pode ter até quatro mil caracteres */
 #define MIN(x, y) (x < y) ? x : y
@@ -209,7 +211,7 @@ void limpa(){
 
 void umount(string nome_arq)
 { 
-    int i;
+    int i, j;
     char saux[1000];
     string s;
     fstream arq;
@@ -296,6 +298,7 @@ void umount(string nome_arq)
         BLOCOS[local] = s;
     }
 
+    char *conteudo;
     for(i = 0; i < num_arquivos; i++)
     {
         int local = arquivos[i].inicio;
@@ -306,18 +309,45 @@ void umount(string nome_arq)
         s += arquivos[i].conteudo;
 
         //arq << s;
+        conteudo = (char*) malloc(sizeof(char)*(s.length()+10));
+        strcpy(conteudo, s.data());
+
+
+        int bloco_estou = 0;
+
+
+        ultimo_bloco = MAX(ultimo_bloco, local);
 
         while(local != -1)
         {
-            BLOCOS[local] = s.substr(0, MIN(s.length(), BLOCO-1));
+            ultimo_bloco = MAX(ultimo_bloco, local);
+            int t1, t2, t3, t4;
+            //t1 = clock();
+            //===================== dt1 ==============================
+            BLOCOS[local].resize(4010);
+            
+            int max = (MIN(s.length(), (BLOCO-1)*(bloco_estou+1)));
+            for(j = (BLOCO-1)*bloco_estou; j < max; j++)
+                BLOCOS[local][j-(BLOCO-1)*bloco_estou] = *(conteudo+j);
+            //t2 = clock();
+
+            //===================== dt2 ==============================
+            BLOCOS[local].resize(j-(BLOCO-1)*bloco_estou);
             BLOCOS[local] += "\n";
-            s = s.substr(MIN(s.length(), BLOCO-1), s.length());
+            
+            bloco_estou++;
+            //t3 = clock();
+
+            //========================================================
+            //cerr << local << " binaria dt1: " << t2-t1 << " dt2: "<< t3-t2 << endl;
+
             local = FAT[local];
             ultimo_bloco = MAX(ultimo_bloco, local);
         }
     }
 
     desperdicio = 2000 + 2999;
+    
     for(i = FATBIT; i <= ultimo_bloco; i++)
     {
         arq << BLOCOS[i];
@@ -536,7 +566,10 @@ int main(int argc, char *argv[]){
             original.open(argumentos[0], fstream::in | fstream::out);
             original >> content;
             blocos = content.length();
-            blocos = (blocos + 4000 - 1)/4000;
+
+            //blocos = (blocos + 4000 - 1)/4000;
+            blocos =  (((MAX(blocos - 3997, 0)) + 3999 - 1)/3999) + 1;
+            
             /* fecha original */
             original.close();
 
@@ -584,7 +617,7 @@ int main(int argc, char *argv[]){
             }
             else
                 cout << "Não há espaço" << endl;
-            
+
             umount(nome_arq);
         }
         else if(comando == "mkdir"){
