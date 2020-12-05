@@ -82,6 +82,8 @@ void rm(string n){
     aux = n.substr(0, n.find_last_of("/"));
     a[n] = 0;
     j = d[aux];
+    diretorios[j].acessado = time(NULL);
+    diretorios[j].modificado = time(NULL);
 
     /* apaga arquivo no diretório */
     for(auto it = (diretorios[j].arquivos).begin(); it < (diretorios[j].arquivos).end(); it++){
@@ -122,6 +124,8 @@ void rmdir(string n){
     d[n] = 0;
     aux = n.substr(0, n.find_last_of("/"));
     j = d[aux];
+    diretorios[j].acessado = time(NULL);
+    diretorios[j].modificado = time(NULL);
 
     /* apaga os diretorios filhos */
     for(int it : grafo[id]){
@@ -565,6 +569,8 @@ int main(int argc, char *argv[]){
                 argumentos[1] = argumentos[1].substr(0, argumentos[1].find_last_of("/"));
                 j = d[argumentos[1]];
                 (diretorios[j].arquivos).push_back(next_id);
+                diretorios[j].acessado = time(NULL);
+                diretorios[j].modificado = time(NULL);
 
                 /* cria o arquivo */
                 arquivos[next_id].nome = aux;
@@ -580,7 +586,6 @@ int main(int argc, char *argv[]){
                 cout << "Não há espaço" << endl;
             
             umount(nome_arq);
-
         }
         else if(comando == "mkdir"){
             /* diretorio */
@@ -610,6 +615,8 @@ int main(int argc, char *argv[]){
                 aux = argumentos[0].substr(0, argumentos[0].find_last_of("/"));
                 j = d[aux];
                 grafo[j].push_back(next_id);
+                diretorios[j].acessado = time(NULL);
+                diretorios[j].modificado = time(NULL);
 
                 diretorios[next_id].nome = argumentos[0];
                 diretorios[next_id].local = i;
@@ -659,6 +666,8 @@ int main(int argc, char *argv[]){
                 /* cria arquivo em next_id */
                 aux = argumentos[0].substr(0, argumentos[0].find_last_of("/"));
                 j = d[aux];
+                diretorios[j].acessado = time(NULL);
+                diretorios[j].modificado = time(NULL);
 
                 arquivos[next_id].nome = argumentos[0].substr(argumentos[0].find_last_of("/")+1, argumentos[0].length());
                 arquivos[next_id].conteudo = "";
