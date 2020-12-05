@@ -344,6 +344,8 @@ void umount(string nome_arq)
             local = FAT[local];
             ultimo_bloco = MAX(ultimo_bloco, local);
         }
+
+        free(conteudo);
     }
 
     desperdicio = 2000 + 2999;
@@ -573,8 +575,12 @@ int main(int argc, char *argv[]){
             /* fecha original */
             original.close();
 
+            aux = argumentos[1].substr(0, argumentos[1].find_last_of("/"));
+            j = d[aux];
+            cont = diretorios[j].arquivos.size() + grafo[j].size();
+
             /*crio o arquivo no bloco i se tiver espaço para ele*/
-            if(blocos <= livre)
+            if(blocos <= livre && cont < 55)
             {
                 /* acha o qual será o id do arquivo */
                 for(i = 0; i < MAXN; i++){
@@ -629,8 +635,12 @@ int main(int argc, char *argv[]){
 
             i = proximo_livre(); /* diretórios ocuparão um bloco apenas */
 
+            aux = argumentos[0].substr(0, argumentos[0].find_last_of("/"));
+            j = d[aux];
+            cont = diretorios[j].arquivos.size() + grafo[j].size();
+
             /* crio o diretorio no bloco i */
-            if(i < MAXN)
+            if(i < MAXN && cont < 55)
             {
                 /* acha qual o id do diretorio */
                 for(k = 0; k < MAXN; k++){
@@ -684,8 +694,16 @@ int main(int argc, char *argv[]){
             
             k = proximo_livre();
 
+            /* se o arquivo ainda não foi criado */
             if(a.count(argumentos[0]) == 0)
             {
+                aux = argumentos[0].substr(0, argumentos[0].find_last_of("/"));
+                j = d[aux];
+                cont = diretorios[j].arquivos.size() + grafo[j].size();
+                if(k == MAXN || cont >= 55){
+                    cout << "Lotado" << endl;
+                    continue;
+                }
                 /* acha o qual será o id do arquivo */
                 for(i = 0; i < MAXN; i++){
                     if(arquivos[i].nome == "") break;

@@ -2,8 +2,9 @@ mount sis.txt
 mkdir /d1
 mkdir /d1/d2
 mkdir /d3
+cp gigante.txt /teste4.txt
 touch /d3/teste2.txt
-cp teste.txt /d1/teste.txt
+cp medio.txt /d1/teste.txt
 cp grande.txt /d3/teste3.txt
 umount
 sai
