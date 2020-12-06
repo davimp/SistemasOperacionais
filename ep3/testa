@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # TESTES PARA ARQUIVO VAZIO
-
+'''
 for i in $(seq 1 30); do
 echo $i >> res1.txt
 echo $i >> res2.txt
@@ -39,78 +39,79 @@ cp sistemadir2.txt sis1.txt
 done
 
 # TESTES PARA ARQUIVO COM 10MB
-'''
+
 for i in $(seq 1 30); do
 echo $i >> res9.txt
 echo $i >> res10.txt
 cp sistema10.txt sis1.txt
-{ /usr/bin/time -p ./ep3 < in9.txt ; } 2>> res9.txt
-{ /usr/bin/time -p ./ep3 < in10.txt ; } 2>> res10.txt
+{ /usr/bin/time -p ./ep3 < in1.txt ; } 2>> res9.txt
+{ /usr/bin/time -p ./ep3 < in2.txt ; } 2>> res10.txt
 done
 
 for i in $(seq 1 30); do
 echo $i >> res11.txt
 echo $i >> res12.txt
 cp sistema10.txt sis2.txt
-{ /usr/bin/time -p ./ep3 < in11.txt ; } 2>> res11.txt
-{ /usr/bin/time -p ./ep3 < in12.txt ; } 2>> res12.txt
+{ /usr/bin/time -p ./ep3 < in3.txt ; } 2>> res11.txt
+{ /usr/bin/time -p ./ep3 < in4.txt ; } 2>> res12.txt
 done
 
 for i in $(seq 1 30); do
 echo $i >> res13.txt
 echo $i >> res14.txt
-cp sistema10.txt sis2.txt
-{ /usr/bin/time -p ./ep3 < in13.txt ; } 2>> res13.txt
-{ /usr/bin/time -p ./ep3 < in14.txt ; } 2>> res14.txt
+cp sistema10.txt sis3.txt
+{ /usr/bin/time -p ./ep3 < in5.txt ; } 2>> res13.txt
+{ /usr/bin/time -p ./ep3 < in6.txt ; } 2>> res14.txt
 done
 
+'''
 for i in $(seq 1 30); do
 echo $i >> res15.txt
-cp sistema10.txt sis3.txt
+cp sistemadir3.txt sis3.txt
 { /usr/bin/time -p ./ep3 < in15.txt ; } 2>> res15.txt
 done
 
 for i in $(seq 1 30); do
 echo $i >> res16.txt
-cp sistema10.txt sis3.txt
-{ /usr/bin/time -p ./ep3 < in16.txt ; } 2>> res16.txt
+cp sistemadir4.txt sis3.txt
+{ /usr/bin/time -p ./ep3 < in15.txt ; } 2>> res16.txt
 done
-
+'''
 # TESTES PARA ARQUIVO COM 30MB
 
 for i in $(seq 1 30); do
 echo $i >> res17.txt
 echo $i >> res18.txt
 cp sistema30.txt sis1.txt
-{ /usr/bin/time -p ./ep3 < in17.txt ; } 2>> res17.txt
-{ /usr/bin/time -p ./ep3 < in18.txt ; } 2>> res18.txt
+{ /usr/bin/time -p ./ep3 < in1.txt ; } 2>> res17.txt
+{ /usr/bin/time -p ./ep3 < in2.txt ; } 2>> res18.txt
 done
 
 for i in $(seq 1 30); do
 echo $i >> res19.txt
 echo $i >> res20.txt
-cp sistema30.txt sis1.txt
-{ /usr/bin/time -p ./ep3 < in19.txt ; } 2>> res19.txt
-{ /usr/bin/time -p ./ep3 < in20.txt ; } 2>> res20.txt
+cp sistema30.txt sis2.txt
+{ /usr/bin/time -p ./ep3 < in3.txt ; } 2>> res19.txt
+{ /usr/bin/time -p ./ep3 < in4.txt ; } 2>> res20.txt
 done
 
 for i in $(seq 1 30); do
 echo $i >> res21.txt
 echo $i >> res22.txt
-cp sistema30.txt sis1.txt
-{ /usr/bin/time -p ./ep3 < in21.txt ; } 2>> res21.txt
-{ /usr/bin/time -p ./ep3 < in22.txt ; } 2>> res22.txt
+cp sistema30.txt sis3.txt
+{ /usr/bin/time -p ./ep3 < in5.txt ; } 2>> res21.txt
+{ /usr/bin/time -p ./ep3 < in6.txt ; } 2>> res22.txt
 done
 
+'''
 for i in $(seq 1 30); do
 echo $i >> res23.txt
-cp sistema30.txt sis3.txt
-{ /usr/bin/time -p ./ep3 < in23.txt ; } 2>> res23.txt
+cp sistemadir5.txt sis3.txt
+{ /usr/bin/time -p ./ep3 < in15.txt ; } 2>> res23.txt
 done
 
 for i in $(seq 1 30); do
 echo $i >> res24.txt
-cp sistema30.txt sis3.txt
-{ /usr/bin/time -p ./ep3 < in24.txt ; } 2>> res24.txt
+cp sistemadir6.txt sis3.txt
+{ /usr/bin/time -p ./ep3 < in15.txt ; } 2>> res24.txt
 done
-'''

@@ -108,6 +108,7 @@ void rm(string n){
     livre++;
 
     /* apaga arquivo na lista de arquivos */
+    num_arquivos--;
     arquivos[i].nome = "";
     arquivos[i].diretorio = "";
     arquivos[i].conteudo = "";
@@ -151,6 +152,7 @@ void rmdir(string n){
     bitmap[diretorios[id].local] = 0;
 
     /* apaga diretório na lista de arquivos */
+    num_diretorios--;
     diretorios[id].nome = "";
     diretorios[id].arquivos.clear();
     diretorios[id].local = -1;
@@ -210,7 +212,7 @@ void limpa(){
 }
 
 void umount(string nome_arq)
-{ 
+{
     int i, j;
     char saux[1000];
     string s;
@@ -241,13 +243,14 @@ void umount(string nome_arq)
     arq << s + "\n";
 
     // Diretorios
-    for(i = 0; i < num_diretorios; i++)
+    for(i = 0; i < MAXN; i++)
     {
         int local = diretorios[i].local;
+        if(local == -1) continue;
         ultimo_bloco = MAX(ultimo_bloco, local);
         s = "1\n";
         string nome;
-
+        
         if(i == 0)
         {            
             sprintf(saux, "%05d ", diretorios[0].local);
@@ -456,7 +459,6 @@ int main(int argc, char *argv[]){
                             else
                                 diretorios[num_diretorios].nome = "/";
                             d[diretorios[num_diretorios].nome] = num_diretorios;
-                            cerr << "dir: " << diretorios[num_diretorios].nome  << " " << num_diretorios << endl;
 
                             arq >> s;
                             diretorios[num_diretorios].criado = atoi(s.data());
@@ -475,7 +477,6 @@ int main(int argc, char *argv[]){
                         }
                         else
                         {
-                            cerr << "nome: " << nome << endl;
                             diretorios[id].arquivos.push_back(num_arquivos);
                             arquivos[num_arquivos].inicio = local;
                             arquivos[num_arquivos].nome = nome;
@@ -499,7 +500,7 @@ int main(int argc, char *argv[]){
                 }
                 else
                 {
-                    cerr << "ESSA MENSAGEM SÓ APARECERÁ EM CASO DE SINTAXE ERRADA NO ARQUIVO" << endl;
+                    cout << "ESSA MENSAGEM SÓ APARECERÁ EM CASO DE SINTAXE ERRADA NO ARQUIVO" << endl;
                 }
             }
 
@@ -520,7 +521,6 @@ int main(int argc, char *argv[]){
                 {
                     arq >> s;
                     arquivos[id].conteudo += s;
-                    cerr << "id: " << id << endl;
                 }
 
                 local = FAT[local];
@@ -536,7 +536,6 @@ int main(int argc, char *argv[]){
                     desperdicio += 4000 - (s.length()+1);
                     if(FAT[arquivos[id].inicio] == -1)
                         desperdicio -= 2;
-                    cerr << "comprimento: " << s.length() << endl;
                 }
                 else
                     desperdicio += 4000-1-2;
@@ -676,7 +675,6 @@ int main(int argc, char *argv[]){
             /* arquivo */
             cin >> argumentos[0];
             j = a[argumentos[0]];
-            cerr << "debug " << j << " " << argumentos[0] << endl;
             cout << arquivos[j].conteudo << endl;
             umount(nome_arq);
         }

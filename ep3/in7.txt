@@ -1,4 +1,4 @@
 mount sis1.txt
-rmdir /dir1
+rmdir /d1
 umount
 sai

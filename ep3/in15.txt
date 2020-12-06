@@ -1,0 +1,3 @@
+mount sis3.txt
+rmdir /dir1
+sai

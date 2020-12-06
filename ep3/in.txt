@@ -1,4 +1,4 @@
-mount sistemadir2.txt
+mount sistemadir6.txt
 mkdir /dir1
 mkdir /dir1/dir2
 mkdir /dir1/dir2/dir3
@@ -1580,5 +1580,93 @@ cp medio.txt /dir1/dir2/dir3/dir4/dir5/dir6/dir7/dir8/dir9/dir10/dir11/dir12/dir
 cp medio.txt /dir1/dir2/dir3/dir4/dir5/dir6/dir7/dir8/dir9/dir10/dir11/dir12/dir13/dir14/dir15/dir16/dir17/dir18/dir19/dir20/dir21/dir22/dir23/dir24/dir25/dir26/dir27/dir28/dir29/dir30/dir31/teste47.txt
 cp medio.txt /dir1/dir2/dir3/dir4/dir5/dir6/dir7/dir8/dir9/dir10/dir11/dir12/dir13/dir14/dir15/dir16/dir17/dir18/dir19/dir20/dir21/dir22/dir23/dir24/dir25/dir26/dir27/dir28/dir29/dir30/dir31/teste48.txt
 cp medio.txt /dir1/dir2/dir3/dir4/dir5/dir6/dir7/dir8/dir9/dir10/dir11/dir12/dir13/dir14/dir15/dir16/dir17/dir18/dir19/dir20/dir21/dir22/dir23/dir24/dir25/dir26/dir27/dir28/dir29/dir30/dir31/teste49.txt
+cp novo.txt /teste0.txt
+cp novo.txt /teste1.txt
+cp novo.txt /teste2.txt
+cp novo.txt /teste3.txt
+cp novo.txt /teste4.txt
+cp novo.txt /teste5.txt
+cp novo.txt /teste6.txt
+mkdir /segundo
+cp novo.txt /segundo/teste0.txt
+cp novo.txt /segundo/teste1.txt
+cp novo.txt /segundo/teste2.txt
+cp novo.txt /segundo/teste3.txt
+cp novo.txt /segundo/teste4.txt
+cp novo.txt /segundo/teste5.txt
+cp novo.txt /segundo/teste6.txt
+cp novo.txt /segundo/teste7.txt
+cp novo.txt /segundo/teste8.txt
+cp novo.txt /segundo/teste9.txt
+cp novo.txt /segundo/teste10.txt
+cp novo.txt /segundo/teste11.txt
+cp novo.txt /segundo/teste12.txt
+cp novo.txt /segundo/teste13.txt
+cp novo.txt /segundo/teste14.txt
+cp novo.txt /segundo/teste15.txt
+cp novo.txt /segundo/teste16.txt
+cp novo.txt /segundo/teste17.txt
+cp novo.txt /segundo/teste18.txt
+mkdir /tercerio
+cp novo.txt /terceiro/teste0.txt
+cp novo.txt /terceiro/teste1.txt
+cp novo.txt /terceiro/teste2.txt
+cp novo.txt /terceiro/teste3.txt
+cp novo.txt /terceiro/teste4.txt
+cp novo.txt /terceiro/teste5.txt
+cp novo.txt /terceiro/teste6.txt
+cp novo.txt /terceiro/teste7.txt
+cp novo.txt /terceiro/teste8.txt
+cp novo.txt /terceiro/teste9.txt
+cp novo.txt /terceiro/teste10.txt
+cp novo.txt /terceiro/teste11.txt
+cp novo.txt /terceiro/teste12.txt
+cp novo.txt /terceiro/teste13.txt
+cp novo.txt /terceiro/teste14.txt
+cp novo.txt /terceiro/teste15.txt
+cp novo.txt /terceiro/teste16.txt
+cp novo.txt /terceiro/teste17.txt
+cp novo.txt /terceiro/teste18.txt
+cp novo.txt /terceiro/teste19.txt
+mkdir /quarto
+cp novo.txt /quarto/teste0.txt
+cp novo.txt /quarto/teste1.txt
+cp novo.txt /quarto/teste2.txt
+cp novo.txt /quarto/teste3.txt
+cp novo.txt /quarto/teste4.txt
+cp novo.txt /quarto/teste5.txt
+cp novo.txt /quarto/teste6.txt
+cp novo.txt /quarto/teste7.txt
+cp novo.txt /quarto/teste8.txt
+cp novo.txt /quarto/teste9.txt
+cp novo.txt /quarto/teste10.txt
+cp novo.txt /quarto/teste11.txt
+cp novo.txt /quarto/teste12.txt
+cp novo.txt /quarto/teste13.txt
+cp novo.txt /quarto/teste14.txt
+cp novo.txt /quarto/teste15.txt
+cp novo.txt /quarto/teste16.txt
+cp novo.txt /quarto/teste17.txt
+cp novo.txt /quarto/teste18.txt
+mkdir /quinto
+cp novo.txt /quinto/teste0.txt
+cp novo.txt /quinto/teste1.txt
+cp novo.txt /quinto/teste2.txt
+cp novo.txt /quinto/teste3.txt
+cp novo.txt /quinto/teste4.txt
+cp novo.txt /quinto/teste5.txt
+cp novo.txt /quinto/teste6.txt
+cp novo.txt /quinto/teste7.txt
+cp novo.txt /quinto/teste8.txt
+cp novo.txt /quinto/teste9.txt
+cp novo.txt /quinto/teste10.txt
+cp novo.txt /quinto/teste11.txt
+cp novo.txt /quinto/teste12.txt
+cp novo.txt /quinto/teste13.txt
+cp novo.txt /quinto/teste14.txt
+cp novo.txt /quinto/teste15.txt
+cp novo.txt /quinto/teste16.txt
+cp novo.txt /quinto/teste17.txt
+cp novo.txt /quinto/teste18.txt
 umount
 sai
